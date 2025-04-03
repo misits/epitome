@@ -17,7 +17,8 @@
         "watch": "ts-node -r tsconfig-paths/register core/build.ts --watch",
         "vite-dev": "VITE_RUNTIME=true ts-node -r tsconfig-paths/register core/bin/dev.ts",
         "vite-build": "vite build",
-        "prepack": "npm run build"
+        "prepack": "npm run build",
+        "deploy:gh-pages": "git subtree push --prefix public origin gh-pages"
     },
     "keywords": [
         "cv",
@@ -33,7 +34,8 @@
     "dependencies": {
         "csso": "^5.0.5",
         "gray-matter": "^4.0.3",
-        "marked": "^9.1.0",
+        "marked": "^15.0.7",
+        "marked-gfm-heading-id": "^4.1.1",
         "sass": "^1.66.1"
     },
     "devDependencies": {

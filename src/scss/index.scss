@@ -1,0 +1,108 @@
+@use 'global';
+@use 'base/breakpoint' as *;
+
+$hero-height: 100vh;
+$hero-height-mobile: 100vh;
+$hero-bg-color: var(--color-black);
+$hero-text-color: var(--color-white);
+$roboto-slab: "Roboto Slab", serif;
+.roboto-slab {
+  font-family: "Roboto Slab", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+// Base theme styles
+.theme-index {
+  font-family: $roboto-slab;
+
+  .header {
+    color: $hero-text-color;
+  }
+
+  .hero {
+    height: $hero-height;
+    background-color: $hero-bg-color;
+    color: $hero-text-color;
+
+    h1 {
+      color: $hero-text-color;
+      font-size: 20vw;
+      line-height: 1;
+
+      @include breakpoint-down(md) {
+        font-size: 18vw;
+      }
+    }
+
+    .hero-table-of-content {
+      color: $hero-text-color;
+
+      ol {
+        list-style-type: decimal;
+        padding-left: 1rem;
+      }
+    }
+  }
+
+  .wrapper {
+    h2 {
+      margin-top: var(--spacing-8);
+      margin-bottom: 0;
+    }
+  
+    h3 {
+      margin-top: var(--spacing-4);
+    }
+  
+    p {
+      margin-bottom: var(--spacing-4);
+    }
+  
+    pre {
+      background-color: var(--color-black);
+      color: var(--color-white);
+      padding: var(--spacing-4);
+      margin-bottom: var(--spacing-4);
+      border-radius: var(--radius-lg);
+      overflow: auto;
+    }
+  
+    code.language-bash {
+      font-size: var(--font-size-xs);
+    }
+  
+    code:not(.language-bash) {
+      background-color: var(--color-black);
+      color: var(--color-white);
+      padding: var(--spacing-1) var(--spacing-2);
+      border-radius: var(--radius-xl);
+      font-size: var(--font-size-xs);
+    }
+
+    a {
+      color: var(--color-black);
+      text-decoration: underline;
+    }
+
+    ul {
+      list-style-type: disc;
+      padding-left: 1rem;
+      margin-bottom: var(--spacing-4);
+    }
+
+    ol {
+      list-style-type: decimal;
+      padding-left: 1rem;
+      margin-bottom: var(--spacing-4);
+    }
+  }
+
+  footer {
+    hr {
+      border-color: var(--color-black);
+      border-style: solid;
+    }
+  }
+}

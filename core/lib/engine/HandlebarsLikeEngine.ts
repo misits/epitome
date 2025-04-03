@@ -117,14 +117,17 @@ export class HandlebarsLikeEngine implements TemplateEngine {
     // 3. Process yield blocks (inserts content into yield areas)
     processed = this.yieldProcessor.processYields(processed);
     
-    // 4. Process conditionals and each blocks (in the combined template)
+    // 4. Process partials again to handle partials inside yield blocks
+    processed = this.partialProcessor.processPartials(processed, enhancedContext);
+    
+    // 5. Process conditionals and each blocks (in the combined template)
     processed = this.eachProcessor.processEachBlocks(processed, enhancedContext);
     processed = this.conditionalProcessor.processConditionals(processed, enhancedContext);
     
-    // 5. Process variables
+    // 6. Process variables
     processed = this.variableProcessor.processVariables(processed, enhancedContext);
     
-    // 6. Clean up any remaining template tags
+    // 7. Clean up any remaining template tags
     processed = this.cleanupRemainingTags(processed);
     
     return processed;

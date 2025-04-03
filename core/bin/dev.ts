@@ -81,7 +81,6 @@ function buildAllSites(): void {
     ensureDirectoryExists(outputDir);
     console.log('Building all markdown files...');
     generator.buildAll();
-    console.log('✅ Build of all files completed successfully!');
   } catch (error) {
     console.error('❌ Build failed:', error);
   }

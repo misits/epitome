@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import matter from 'gray-matter';
 import { marked } from 'marked';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { Logger } from '@lib/core/Logger';
 
 /**
@@ -12,6 +13,9 @@ export class MarkdownProcessor {
   constructor(logger: Logger) {
     this.logger = logger;
     this.logger.logLevel('debug', 'MarkdownProcessor initialized');
+    
+    // Configure marked to use gfmHeadingId extension
+    marked.use(gfmHeadingId());
   }
   
   parse(filePath: string): { data: any, content: string } {
@@ -36,7 +40,8 @@ export class MarkdownProcessor {
   
   convertToHtml(markdown: string): string {
     this.logger.logLevel('parse', 'Converting markdown to HTML');
-    return marked(markdown);
+    // Use marked.parse instead of marked for synchronous operation
+    return marked.parse(markdown, { async: false }) as string;
   }
   
   private normalizeData(data: any): any {

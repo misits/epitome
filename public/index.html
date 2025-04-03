@@ -1,117 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page - Epitome Generator</title>
-    <meta name="description" content="A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.">
-    <link rel="stylesheet" href="./style.css">
-    <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png">
-    <link rel="manifest" href="./favicon/site.webmanifest">
-    
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Page - Epitome</title>
+<meta name="description" content="A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.">
+<link rel="stylesheet" href="./style.css">
+<link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png">
+<link rel="manifest" href="./favicon/site.webmanifest"> 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+
     <!-- Custom head content -->
-    <style>
-        .app-title {
-            color: #1a73e8;
-            font-weight: bold;
-            text-decoration: underline;
-        }
-        
-        .custom-insertion {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
-            border-left: 4px solid #1a73e8;
-        }
-    </style>
 </head>
-<body class="theme-default">
-    <div class="container">
-        <header class="header">
-            <h1>Epitome Generator</h1>
-            <h2 class="tagline">Home Page</h2>
-            <div class="summary">A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.</div>
-            
-            <div class="custom-insertion">
-        <p>⭐ This content is inserted right after the summary and before contact info</p>
+
+<body class="theme-index">
+    <header class="header fixed top-0 left-0 right-0 z-50 w-full">
+    <div class="container grid grid-cols-2">
+        <div class="flex flex-row items-center justify-start">
+            <!-- Logo -->
+            <a href="./" class="mb-0"></a>
+        </div>
     </div>
-            
-            <div class="contact-info">
-                
-                <div class="contact-item">
-                    <span>Contact:</span>
-                    <a href="mailto:info@epitome.dev">info@epitome.dev</a>
-                </div>
-                
-                
-                
-                <div class="contact-item">
-                    <span>GitHub:</span>
-                    <a href="https://github.com/misits/epitome" target="_blank">https://github.com/misits/epitome</a>
-                </div>
-                
-            </div>
-        </header>
+</header>
 
-        <main>
-            <div class="custom-insertion">
-    <h3>Content Before Main</h3>
-    <p>This appears before the main content.</p>
-</div>
+    <main class="main">
+        <section class="hero flex flex-col justify-between mb-12 p-8">
+    <div class="hero-title text-center">
+        <h1 class="text-uppercase m-0">Epitome</h1>
+        <p class="text-xl">A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.</p>
+    </div>
+    <div class="hero-table-of-content">
+        <ol class="mb-6">
             
-            <h1>Welcome to Epitome</h1>
-<p>Epitome is a simple yet powerful static site generator designed to create beautiful, responsive websites from markdown content. It&#39;s especially well-suited for landing pages and single-page websites where you want to go from content to published site with minimal effort.</p>
-<h2>Quick Start</h2>
-<p>Getting started with Epitome is straightforward:</p>
-<pre><code class="language-bash"># Clone the repository
-git clone https://github.com/misits/epitome.git
+                <li>
+                    <a href="#installation">Installation</a>
+                </li>
+            
+                <li>
+                    <a href="#quick-start">Quick Start</a>
+                </li>
+            
+                <li>
+                    <a href="#create-your-content">Create Your Content</a>
+                </li>
+            
+                <li>
+                    <a href="#customizing-your-site">Customizing Your Site</a>
+                </li>
+            
+                <li>
+                    <a href="#advanced-usage">Advanced Usage</a>
+                </li>
+            
+                <li>
+                    <a href="#troubleshooting">Troubleshooting</a>
+                </li>
+            
+        </ol>
+
+        <hr />
+        <div class="grid grid-cols-3 mt-6">
+            <p class="text-sm m-0">powered by <a href="https://misits.ch" target="_blank" rel="noopener noreferrer">@misits</a></p>
+            <p class="text-sm m-0 text-center">v1.0.0</p>
+            <p class="text-sm m-0 text-right"><a href="https://github.com/misits/epitome">view on github</a></p>
+        </div>
+    </div>
+</section>
+
+    <section class="wrapper container-2xl">
+        <h2 id="installation">Installation</h2>
+<p>Clone the repository directly from GitHub:</p>
+<pre><code class="language-bash">git clone https://github.com/misits/epitome.git
 cd epitome
-
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
 </code></pre>
-<h2>How It Works</h2>
+<p>This will install all the necessary dependencies for epitome.</p>
+<h2 id="quick-start">Quick Start</h2>
 <ol>
-<li><strong>Create markdown files</strong> with YAML frontmatter for structured data</li>
-<li><strong>Choose or create a theme</strong> by defining HTML templates</li>
-<li><strong>Style your site</strong> with SCSS files</li>
-<li><strong>Generate your site</strong> with a single command</li>
-<li><strong>Deploy anywhere</strong> - it&#39;s just static HTML and CSS!</li>
+<li>Create a markdown file for your content (default location is <code>md/page.md</code>)</li>
+<li>Add your content to the markdown file (see <a href="#create-your-content">Create Your Content</a>)</li>
+<li>Run the generator:</li>
 </ol>
-<h2>Command Line Options</h2>
-<p>Epitome offers various command line options for customization:</p>
-<pre><code class="language-bash">epitome [options]
+<pre><code class="language-bash"># Run the build
+npm run build
+
+# Or use the CLI directly
+npx ts-node src/cli.ts
+</code></pre>
+<ol start="4">
+<li>Or start the development server with live reload:</li>
+</ol>
+<pre><code class="language-bash"># Start development server
+npm run dev
+
+# Or use the CLI directly with dev flag
+npx ts-node src/cli.ts --dev
+</code></pre>
+<ol start="5">
+<li>Your generated website will be in the <code>public</code> directory. Open <code>public/index.html</code> in your browser to view it.</li>
+</ol>
+<h2 id="create-your-content">Create Your Content</h2>
+<p>Your content is written in markdown with YAML frontmatter. The frontmatter (between the <code>---</code> markers) contains structured data about your page, while the markdown content below provides the main body.</p>
+<h2 id="customizing-your-site">Customizing Your Site</h2>
+<p>The frontmatter uses YAML syntax and can contain any properties you want to use in your templates. The only required property is <code>theme</code>, which specifies which template to use.</p>
+<pre><code class="language-yaml">---
+theme: &quot;default&quot;
+title: &quot;My Page Title&quot;
+subtitle: &quot;A subtitle for my page&quot;
+author: &quot;Your Name&quot;
+date: &quot;2023-04-15&quot;
+tags: [&quot;example&quot;, &quot;markdown&quot;, &quot;static site&quot;]
+---
+
+Here goes you markdown content
+
+&lt;p&gt;This syntax also work&lt;/p&gt;
+</code></pre>
+<h3 id="creating-custom-themes">Creating Custom Themes</h3>
+<ol>
+<li>Create a new HTML template in <code>src/templates/</code> (e.g., <code>custom-theme.html</code>)</li>
+<li>Create a matching SCSS file in <code>src/scss/</code> (e.g., <code>custom-theme.scss</code>)</li>
+<li>Specify your theme in the markdown frontmatter: <code>theme: &quot;custom-theme&quot;</code></li>
+<li>Create a .md file in <code>src/md/</code> (e.g., <code>custom-theme.md</code>)</li>
+</ol>
+<h4 id="scss-styling">SCSS Styling</h4>
+<p>Create a matching SCSS file for your template:</p>
+<pre><code class="language-scss">@use &#39;global&#39;;
+
+.theme-custom-theme {
+  // Your styles here
+}
+</code></pre>
+<h2 id="advanced-usage">Advanced Usage</h2>
+<h3 id="cli-options">CLI Options</h3>
+<pre><code>epitome [options]
 
 Options:
-  --page, -p &lt;file&gt;         Page markdown file (default: index.md)
+  --page, -p &lt;file&gt;         Page markdown file (default: page.md)
   --output, -o &lt;dir&gt;        Output directory (default: ./public)
   --md-dir &lt;dir&gt;            Markdown files directory (default: ./md)
   --templates-dir &lt;dir&gt;     Templates directory (default: ./src/templates)
   --scss-dir &lt;dir&gt;          SCSS directory (default: ./src/scss)
-  --dev                     Start development server with live reload
-  --no-minify               Disable CSS minification
+  --debug, -d               Enable debug output
+  --debug-level &lt;level&gt;     Enable specific debug level(s), comma separated
+  --help, -h                Show this help
 </code></pre>
-<p><a href="about/">Check out the About page</a> to see another example page or visit the <a href="https://github.com/misits/epitome">GitHub repository</a> for more information.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<ol>
+<li><strong>Missing Templates</strong>: If you get an error about missing templates, make sure you have created the template file in the correct location (<code>src/templates/[theme].html</code>).</li>
+<li><strong>SCSS Compilation Issues</strong>: Check that you have all necessary SCSS files in the correct location (<code>src/scss/[theme].scss</code> and <code>src/scss/global.scss</code>).</li>
+<li><strong>Data Not Showing</strong>: Make sure your frontmatter is correctly formatted with proper indentation and YAML syntax.</li>
+</ol>
+<h3 id="debugging">Debugging</h3>
+<p>To enable debugging output, use the <code>--debug</code> flag:</p>
+<pre><code class="language-bash">epitome --debug
+</code></pre>
+<p>For more specific debugging, you can specify debug levels:</p>
+<pre><code class="language-bash">epitome --debug --debug-level template,data,parse
+</code></pre>
+<h3 id="getting-help">Getting Help</h3>
+<p>If you encounter issues not covered in this guide, please:</p>
+<ol>
+<li>Check the <a href="https://github.com/misits/epitome/issues">GitHub repository</a> for existing issues</li>
+<li>Open a new issue with detailed information about your problem</li>
+</ol>
 
-        </main>
+    </section>
+    </main>
 
-        <footer class="footer">
-            <p>Made with ❤️ using <a href="https://github.com/misits/epitome" target="_blank">Epitome</a> - the lightweight static site generator</p>
-            
-            <div class="custom-insertion">
-        <p>👋 Custom footer content appears in the middle of the footer</p>
+    <footer class="footer pb-4">
+    <div class="container-2xl text-center">
+
+        <hr class="my-6" />
+
+        <p class="text-sm">Made with ❤️ using <a href="https://github.com/misits/epitome" target="_blank">Epitome</a> - the lightweight
+            static site generator</p>
     </div>
-            
-            <nav class="site-nav">
-                <a href="./">Home</a>
-                <a href="./about/">About</a>
-            </nav>
-        </footer>
-    </div>
+</footer>
 </body>
+
 </html>
