@@ -1,73 +1,157 @@
 # epitome Usage Guide
 
-This guide explains how to use epitome to create beautiful CV/resume websites from markdown content.
+This guide explains how to use epitome to create beautiful landing pages and single-page websites from markdown content.
 
 ## Table of Contents
 
 1. [Installation](#installation)
 2. [Quick Start](#quick-start)
-3. [Create Your CV Content](#create-your-cv-content)
-4. [Customizing Your CV](#customizing-your-cv)
+3. [Create Your Content](#create-your-content)
+4. [Customizing Your Site](#customizing-your-site)
 5. [Advanced Usage](#advanced-usage)
 6. [Troubleshooting](#troubleshooting)
 
 ## Installation
 
-### Global Installation
-
-If you want to use epitome from anywhere on your system, install it globally:
+Clone the repository directly from GitHub:
 
 ```bash
-npm install -g epitome
+git clone https://github.com/misits/epitome.git
+cd epitome
+npm install
 ```
 
-### Local Project Installation
-
-If you prefer to use epitome within a specific project:
-
-```bash
-# Create a new directory for your CV
-mkdir my-cv
-cd my-cv
-
-# Initialize a new npm project
-npm init -y
-
-# Install epitome locally
-npm install epitome --save-dev
-```
+This will install all the necessary dependencies for epitome.
 
 ## Quick Start
 
-1. Create the basic directory structure:
+1. Create a markdown file for your content (default location is `md/page.md`)
+
+2. Add your content to the markdown file (see [Create Your Content](#create-your-content))
+
+3. Run the generator:
 
 ```bash
-mkdir -p md src/templates src/scss public
+# Run the build
+npm run build
+
+# Or use the CLI directly
+npx ts-node src/cli.ts
 ```
 
-2. Create a markdown file for your CV:
+4. Or start the development server with live reload:
 
 ```bash
-touch md/page.md
+# Start development server
+npm run dev
+
+# Or use the CLI directly with dev flag
+npx ts-node src/cli.ts --dev
 ```
 
-3. Add your content to the markdown file (see [Create Your CV Content](#create-your-cv-content))
+5. Your generated website will be in the `public` directory. Open `public/index.html` in your browser to view it.
 
-4. Run the generator:
+## Create Your Content
 
-```bash
-# If installed globally
-epitome
+Your content is written in markdown with YAML frontmatter. The frontmatter (between the `---` markers) contains structured data about your page, while the markdown content below provides the main body.
 
-# If installed locally
-npx epitome
+### Frontmatter Structure
+
+The frontmatter uses YAML syntax and can contain any properties you want to use in your templates. The only required property is `theme`, which specifies which template to use.
+
+```yaml
+---
+theme: "default"
+title: "My Page Title"
+subtitle: "A subtitle for my page"
+author: "Your Name"
+date: "2023-04-15"
+tags: ["example", "markdown", "static site"]
+---
 ```
 
-5. Your generated CV will be in the `public` directory. Open `public/index.html` in your browser to view it.
+### Example: Product Landing Page
 
-## Create Your CV Content
+A perfect use case for epitome is to create a product landing page. Here's an example structure for a landing page in `md/page.md`:
 
-Your CV content is written in markdown with YAML frontmatter. Here's an example structure for your `md/page.md` file:
+```markdown
+---
+theme: "landing"
+title: "SuperApp"
+tagline: "The all-in-one solution for your productivity needs"
+description: "SuperApp helps you manage tasks, track time, and collaborate with your team in one beautiful interface."
+cta_primary: "Get Started for Free"
+cta_primary_url: "https://example.com/signup"
+cta_secondary: "View Demo"
+cta_secondary_url: "https://example.com/demo"
+featured_image: "hero-image.png"
+
+# Features section
+features:
+  - title: "Task Management"
+    description: "Organize tasks with priorities, deadlines, and custom labels."
+    icon: "tasks.svg"
+  - title: "Time Tracking"
+    description: "Track time spent on projects with detailed reports and analytics."
+    icon: "time.svg"
+  - title: "Team Collaboration"
+    description: "Work together with real-time updates and communication tools."
+    icon: "team.svg"
+
+# Testimonials section
+testimonials:
+  - quote: "SuperApp has transformed how our team works together. We've improved productivity by 40%."
+    author: "Jane Smith"
+    position: "CEO, Tech Innovations"
+    image: "jane.jpg"
+  - quote: "I can't imagine working without SuperApp now. It's intuitive and powerful."
+    author: "Mark Johnson"
+    position: "Product Manager, StartupXYZ"
+    image: "mark.jpg"
+
+# Pricing section
+plans:
+  - name: "Basic"
+    price: "$9"
+    period: "monthly"
+    features: ["5 Projects", "2 Team Members", "Basic Reports", "Email Support"]
+    url: "https://example.com/signup/basic"
+  - name: "Pro"
+    price: "$29"
+    period: "monthly"
+    popular: true
+    features: ["Unlimited Projects", "10 Team Members", "Advanced Reports", "Priority Support", "API Access"]
+    url: "https://example.com/signup/pro"
+  - name: "Enterprise"
+    price: "$99"
+    period: "monthly"
+    features: ["Unlimited Everything", "Dedicated Account Manager", "Custom Features", "24/7 Support"]
+    url: "https://example.com/signup/enterprise"
+---
+
+## Why SuperApp?
+
+SuperApp was designed with one goal in mind: to make your work life simpler and more productive. We believe that great tools should get out of your way and let you focus on what matters most.
+
+## How It Works
+
+1. **Sign up for an account** - Get started with a free trial, no credit card required
+2. **Import your existing data** - Easily migrate from other tools
+3. **Invite your team** - Collaborate with colleagues for maximum productivity
+4. **Customize your workflow** - Adapt SuperApp to fit your unique needs
+
+## Security & Privacy
+
+Your data is always secure with SuperApp. We use industry-standard encryption and never share your information with third parties.
+
+## Get Started Today
+
+Join thousands of teams who have already transformed their workflow with SuperApp.
+```
+
+### Example: CV/Resume
+
+Another common use case for epitome is to create a CV or resume website. Here's an example:
 
 ```markdown
 ---
@@ -146,47 +230,66 @@ I am a frontend developer with a passion for creating beautiful, responsive, and
 When I'm not coding, I enjoy hiking, photography, and exploring new coffee shops around the city.
 ```
 
-### Frontmatter Structure
+### Example: Blog Post
 
-The frontmatter (between the `---` markers) contains structured data about your CV:
+You can also create a blog post:
 
-- **Basic Information**:
-  - `theme`: The theme to use for styling (e.g., "default")
-  - `name`: Your full name
-  - `title`: Your professional title
-  - `summary`: A brief summary of your qualifications
-  - `phone`: Your phone number
-  - `email`: Your email address
-  - `location`: Your location
-  - `website`: Your website or online portfolio
+```markdown
+---
+theme: "blog"
+title: "Getting Started with JavaScript"
+author: "Jane Smith"
+date: "2023-04-15"
+tags: ["javascript", "web development", "programming"]
+featured_image: "js-header.jpg"
+summary: "A beginner's guide to JavaScript programming language"
+---
 
-- **Education**: An array of education entries, each with:
-  - `school`: Institution name
-  - `faculty`: Department or faculty
-  - `degree`: Degree earned
-  - `from`: Start date
-  - `to`: End date (or "present"/"now" for ongoing)
+# Getting Started with JavaScript
 
-- **Experience**: An array of work experiences, each with:
-  - `company`: Company name
-  - `title`: Your job title
-  - `from`: Start date
-  - `to`: End date (or "present"/"now" for ongoing)
-  - `tasks`: Array of your responsibilities and achievements
+JavaScript is one of the most popular programming languages in the world. It's essential for web development and can be used for both front-end and back-end applications.
 
-- **Projects**: An array of projects, each with:
-  - `project`: Project name
-  - `summary`: Brief description
-  - `date`: Completion date
-  - `preview`: Image filename (place in public/assets/img/) or URL
-  - `url`: Project URL
-  - `technologies`: Array of technologies used
+## Why Learn JavaScript?
+
+1. **Ubiquity**: It runs in browsers, servers, mobile devices, and more
+2. **Versatility**: Can be used for web, mobile, desktop, and even IoT applications
+3. **Community**: Large community with countless resources and libraries
+
+## Basic Syntax
+
+Here's a simple example of JavaScript code:
+
+```javascript
+// Variables
+const name = "John";
+let age = 30;
+
+// Functions
+function greet(person) {
+  return `Hello, ${person}!`;
+}
+
+// Output
+console.log(greet(name));
+```
+
+Stay tuned for more JavaScript tutorials!
+```
 
 ### Markdown Content
 
-After the frontmatter, you can add additional content in markdown format. This is where you can add more detailed information about yourself, your skills, interests, or any other sections you'd like to include.
+After the frontmatter, you can add any content in markdown format. This is the main body of your page and can include:
 
-## Customizing Your CV
+- Headers (# H1, ## H2, etc.)
+- Paragraphs
+- Lists (ordered and unordered)
+- Links and images
+- Code blocks
+- Blockquotes
+- Tables
+- And any other markdown features
+
+## Customizing Your Site
 
 ### Using Different Themes
 

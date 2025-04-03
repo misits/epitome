@@ -1,64 +1,60 @@
 # epitome
 
-A lightweight static site generator for CV/resume creation from markdown files.
+A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.
 
 ## Overview
 
-Epitome is a simple yet powerful tool designed to create beautiful, responsive CV/resume websites from markdown content. It allows you to maintain your professional information in easy-to-edit markdown files and automatically generates a styled HTML website.
+Epitome is a simple yet powerful tool designed to create beautiful, responsive websites from markdown content. It's especially well-suited for landing pages and single-page websites where you want to go from content to published site with minimal effort. While it works perfectly for CVs/resumes, it can be used for product pages, documentation sites, portfolios, and more - all generated from simple markdown files.
 
 ## Features
 
-- **Markdown-based**: Write your CV content in easy-to-maintain markdown files
-- **Frontmatter support**: Define structured data about your experience, education, and projects
+- **Markdown-based**: Write your content in easy-to-maintain markdown files
+- **Frontmatter support**: Define structured data using YAML frontmatter
 - **Templates**: Customize the look and feel with HTML templates
-- **SCSS styling**: Style your CV with Sass/SCSS
-- **Simple CLI**: Generate your CV website with a single command
-- **Multiple themes**: Choose or create different themes for your CV
+- **SCSS styling**: Style your website with Sass/SCSS
+- **Single-command generation**: Create beautiful landing pages with a single command
+- **Multiple themes**: Choose or create different themes for your site
 - **Development mode**: Live preview with auto-reload as you edit templates, markdown, and SCSS files
 
 ## Installation
 
-### Global Installation
+Clone the repository directly from GitHub:
 
 ```bash
-npm install -g epitome
-```
-
-### Local Project Installation
-
-```bash
-npm install epitome --save-dev
+git clone https://github.com/misits/epitome.git
+cd epitome
+npm install
 ```
 
 ## Quick Start
 
-1. Create a markdown file for your CV (default: `md/page.md`)
+1. Create a markdown file for your landing page (default: `md/page.md`)
 2. Add your content using the frontmatter format for structured data
 3. Run the generator:
 
 ```bash
-# If installed globally
-epitome
+# Run the build
+npm run build
 
-# If installed locally
-npx epitome
+# Or use the CLI directly
+npx ts-node src/cli.ts
 ```
 
 4. Or start the development server with live reload:
 
 ```bash
-# If installed globally
-epitome --dev
+# Start development server
+npm run dev
 
-# If installed locally
-npx epitome --dev
+# Or use the CLI directly with dev flag
+npx ts-node src/cli.ts --dev
 ```
 
 ## Documentation
 
 For detailed documentation on how to use epitome, please check the [documentation folder](doc/):
 
-- [Usage Guide](doc/usage-guide.md) - Learn how to use epitome to create your CV website
+- [Usage Guide](doc/usage-guide.md) - Learn how to use epitome to create landing pages and websites
 - [Architecture](doc/architecture.md) - Understand the internal architecture and design
 - [API Reference](doc/api-reference.md) - Technical reference for developers
 
