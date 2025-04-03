@@ -3,14 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Set this to your default branch name if different
+      - main
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -33,6 +32,14 @@ jobs:
         
       - name: Build for GitHub Pages
         run: npm run build:gh-pages
+
+      - name: Dummy upload (preloads upload-artifact@v3)
+        uses: actions/upload-artifact@v3
+        with:
+          name: dummy
+          path: README.md
+          if-no-files-found: ignore
+        continue-on-error: true
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
@@ -48,4 +55,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1 
+        uses: actions/deploy-pages@v1
