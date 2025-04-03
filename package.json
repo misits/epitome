@@ -1,0 +1,55 @@
+{
+    "name": "epitome",
+    "version": "1.0.0",
+    "description": "A static site generator from markdown",
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "bin": {
+        "epitome": "dist/src/cli.js"
+    },
+    "files": [
+        "dist/src/**/*"
+    ],
+    "scripts": {
+        "build": "ts-node src/cli.ts",
+        "dev": "ts-node src/dev.ts",
+        "prepack": "npm run build"
+    },
+    "keywords": [
+        "cv",
+        "resume",
+        "static-site",
+        "markdown",
+        "static-site-generator",
+        "profile",
+        "portfolio"
+    ],
+    "author": "@misits",
+    "license": "MIT",
+    "dependencies": {
+        "gray-matter": "^4.0.3",
+        "marked": "^9.1.0",
+        "sass": "^1.66.1"
+    },
+    "devDependencies": {
+        "@types/marked": "^5.0.1",
+        "@types/node": "^20.6.0",
+        "@vitest/coverage-v8": "^3.1.1",
+        "browser-sync": "^3.0.4",
+        "chokidar": "^3.6.0",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.2.2",
+        "vitest": "^3.1.1"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/misits/epitome.git"
+    },
+    "bugs": {
+        "url": "https://github.com/misits/epitome/issues"
+    },
+    "homepage": "https://github.com/misits/epitome"
+}
