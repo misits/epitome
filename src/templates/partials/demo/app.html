@@ -2,19 +2,19 @@
 <html lang="en">
 
 <head>
-    {{@partial 'head'}}
+    {{@partial 'layouts/head'}}
 
     {{@yield "head"}}
 </head>
 
 <body class="theme-{{theme}}">
-    {{@partial 'header'}}
+    {{@partial 'demo/header'}}
 
     <main class="main">
         {{@yield "content"}}
     </main>
 
-    {{@partial 'footer'}}
+    {{@partial 'demo/footer'}}
 </body>
 
 </html>

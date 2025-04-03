@@ -1,0 +1,13 @@
+<!-- This template extends the app.html layout -->
+{{@partial 'demo/app'}}
+
+{{@yield "head"}}
+    <!-- Custom head content -->
+    <script type="text/javascript">
+        console.log('Hello from demo.html');
+    </script>
+{{/yield}}
+
+{{@yield "content"}}
+    {{{content}}}
+{{/yield}}
