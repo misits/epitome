@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import matter from 'gray-matter';
 import { marked } from 'marked';
-import { Logger } from './Logger';
+import { Logger } from '@lib/core/Logger';
 
 /**
  * MarkdownProcessor - Handles parsing of markdown files with frontmatter

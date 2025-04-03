@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as sass from 'sass';
 import * as csso from 'csso';
-import { Logger } from './Logger';
+import { Logger } from '@lib/core/Logger';
 
 /**
  * AssetProcessor - Handles processing of assets like SCSS

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /// <reference types="node" />
 
-import { Generator } from './lib/Generator';
+import { Generator } from '../lib';
 import * as path from 'path';
-import { parseArgs } from './utils/parseArgs';
+import { parseArgs } from '../utils/parseArgs';
 import { spawn } from 'child_process';
 
 /**
@@ -11,9 +11,9 @@ import { spawn } from 'child_process';
  * Usage: epitome [options]
  * 
  * Options:
- *  --page, -p <file>     Profile markdown file (default: profile.md)
+ *  --page, -p <file>        Build a single markdown file (if not specified, builds all files)
  *  --output, -o <dir>       Output directory (default: ./public)
- *  --md-dir <dir>           Markdown files directory (default: ./md)
+ *  --md-dir <dir>           Markdown files directory (default: ./src/md)
  *  --templates-dir <dir>    Templates directory (default: ./src/templates)
  *  --scss-dir <dir>         SCSS directory (default: ./src/scss)
  *  --debug, -d              Enable debug output
@@ -34,15 +34,15 @@ Epito.me - Static CV Generator
 Usage: epitome [options]
 
 Options:
-  --page, -p <file>         Page markdown file (default: index.md)
-  --output, -o <dir>       Output directory (default: ./public)
-  --md-dir <dir>           Markdown files directory (default: ./md)
-  --templates-dir <dir>    Templates directory (default: ./src/templates)
-  --scss-dir <dir>         SCSS directory (default: ./src/scss)
-  --debug, -d              Enable debug output
-  --debug-level <level>    Enable specific debug level(s), comma separated (e.g. template,data,parse)
-  --dev                    Start development server with live reload
-  --help, -h               Show this help
+  --page, -p <file>         Build a single markdown file (if not specified, builds all files)
+  --output, -o <dir>        Output directory (default: ./public)
+  --md-dir <dir>            Markdown files directory (default: ./src/md)
+  --templates-dir <dir>     Templates directory (default: ./src/templates)
+  --scss-dir <dir>          SCSS directory (default: ./src/scss)
+  --debug, -d               Enable debug output
+  --debug-level <level>     Enable specific debug level(s), comma separated (e.g. template,data,parse)
+  --dev                     Start development server with live reload
+  --help, -h                Show this help
   `);
   process.exit(0);
 }
@@ -53,7 +53,7 @@ if (args.includes('--dev')) {
   console.log('Starting development server...');
   
   // Create arguments array for dev process
-  const devArgs = ['src/dev.ts'];
+  const devArgs = ['core/bin/dev.ts'];
   
   // Pass through all other arguments except --dev
   args.forEach(arg => {
@@ -106,8 +106,16 @@ if (args.includes('--dev')) {
       }
     }
     
-    // Build with specified profile file or default
-    generator.build(options.page || 'index.md');
+    // Check if a specific page is requested
+    if (options.page) {
+      console.log(`Building single page: ${options.page}`);
+      // Build only the specified file
+      generator.build(options.page);
+    } else {
+      console.log('Building all markdown files...');
+      // Build all markdown files
+      generator.buildAll();
+    }
     
     console.log('✅ Build completed successfully!');
   } catch (error) {

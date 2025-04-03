@@ -2,17 +2,21 @@
     "name": "epitome",
     "version": "1.0.0",
     "description": "A static site generator from markdown",
-    "main": "dist/src/index.js",
-    "types": "dist/src/index.d.ts",
+    "main": "dist/core/lib/index.js",
+    "types": "dist/core/lib/index.d.ts",
     "bin": {
-        "epitome": "dist/src/cli.js"
+        "epitome": "dist/core/bin/cli.js"
     },
     "files": [
-        "dist/src/**/*"
+        "dist/core/**/*"
     ],
     "scripts": {
-        "build": "ts-node src/cli.ts",
-        "dev": "ts-node src/dev.ts",
+        "build": "ts-node -r tsconfig-paths/register core/bin/cli.ts",
+        "build:all": "ts-node -r tsconfig-paths/register core/build.ts",
+        "dev": "ts-node -r tsconfig-paths/register core/bin/dev.ts",
+        "watch": "ts-node -r tsconfig-paths/register core/build.ts --watch",
+        "vite-dev": "VITE_RUNTIME=true ts-node -r tsconfig-paths/register core/bin/dev.ts",
+        "vite-build": "vite build",
         "prepack": "npm run build"
     },
     "keywords": [
@@ -37,10 +41,11 @@
         "@types/marked": "^5.0.1",
         "@types/node": "^20.6.0",
         "@vitest/coverage-v8": "^3.1.1",
-        "browser-sync": "^3.0.4",
         "chokidar": "^3.6.0",
         "ts-node": "^10.9.1",
+        "tsconfig-paths": "^4.2.0",
         "typescript": "^5.2.2",
+        "vite": "^5.1.6",
         "vitest": "^3.1.1"
     },
     "engines": {

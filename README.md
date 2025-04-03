@@ -67,9 +67,9 @@ epitome [options]
 Options:
   --page, -p <file>          Page markdown file (default: index.md)
   --output, -o <dir>        Output directory (default: ./public)
-  --md-dir <dir>            Markdown files directory (default: ./md)
-  --templates-dir <dir>     Templates directory (default: ./src/templates)
-  --scss-dir <dir>          SCSS directory (default: ./src/scss)
+  --md-dir <dir>            Markdown files directory (default: ./src/content/md)
+  --templates-dir <dir>     Templates directory (default: ./src/content/templates)
+  --scss-dir <dir>          SCSS directory (default: ./src/content/scss)
   --debug, -d               Enable debug output
   --debug-level <level>     Enable specific debug level(s), comma separated
   --dev                     Start development server with live reload
@@ -139,13 +139,22 @@ Customize styling by editing SCSS files in the `src/scss` directory. Each theme 
 ```
 epitome/
 ├── doc/                # Documentation
-├── src/
-│   ├── index.ts        # Main export point
-│   ├── cli.ts          # CLI implementation
-│   ├── lib/            # Core functionality
+├── core/               # Core functionality
+│   ├── bin/            # CLI scripts and dev server
+│   │   ├── cli.ts      # CLI implementation
+│   │   └── dev.ts      # Development server
+│   ├── lib/            # Core library code
+│   │   ├── core/       # Core modules (Logger, etc.)
+│   │   ├── engine/     # Template engine
+│   │   ├── generator/  # Site generator
+│   │   ├── markdown/   # Markdown processing
+│   │   └── assets/     # Asset processing
+│   ├── types/          # TypeScript type definitions
+│   └── utils/          # Utility functions
+├── src/                # Content files
+│   ├── md/             # Markdown content
 │   ├── scss/           # SCSS styling
 │   └── templates/      # HTML templates
-├── md/                 # Markdown content
 ├── public/             # Generated output
 └── package.json
 ```

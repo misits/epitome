@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { Generator } from './src/lib/Generator';
+import { Generator } from './lib';
 
 /**
  * Main build script that generates a static CV site
@@ -21,7 +21,7 @@ try {
   const generator = new Generator({
     debug: true,
     outputDir: './public',
-    mdDir: './md',
+    mdDir: './src/md',
     templatesDir: './src/templates',
     scssDir: './src/scss',
     minifyCss: !disableMinify
@@ -43,4 +43,4 @@ try {
 } catch (error) {
   console.error('❌ Build failed:', error);
   process.exit(1);
-}
+} 

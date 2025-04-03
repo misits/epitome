@@ -202,7 +202,7 @@ export class Logger {
   }
 
   /**
-   * Info log (cyan color)
+   * Info log (blue color)
    */
   info(...args: any[]): void {
     if (this.enabled) {
@@ -210,7 +210,7 @@ export class Logger {
       const timestamp = this.getTimestamp();
       const indentation = this.getIndentation();
       console.log(
-        `${this.colors.fg.gray}${timestamp}${this.colors.reset} ${this.colors.fg.blue}${this.prefix}${this.colors.reset} ${this.colors.fg.cyan}ℹ${this.colors.reset} ${indentation}`, 
+        `${this.colors.fg.gray}${timestamp}${this.colors.reset} ${this.colors.fg.blue}${this.prefix}${this.colors.reset} ${this.colors.fg.blue}ℹ${this.colors.reset} ${indentation}`, 
         ...formattedArgs
       );
     }
@@ -224,7 +224,7 @@ export class Logger {
       const formattedArgs = this.formatObjects(...args);
       const timestamp = this.getTimestamp();
       const indentation = this.getIndentation();
-      console.warn(
+      console.log(
         `${this.colors.fg.gray}${timestamp}${this.colors.reset} ${this.colors.fg.blue}${this.prefix}${this.colors.reset} ${this.colors.fg.yellow}⚠${this.colors.reset} ${indentation}`, 
         ...formattedArgs
       );
@@ -239,7 +239,7 @@ export class Logger {
       const formattedArgs = this.formatObjects(...args);
       const timestamp = this.getTimestamp();
       const indentation = this.getIndentation();
-      console.error(
+      console.log(
         `${this.colors.fg.gray}${timestamp}${this.colors.reset} ${this.colors.fg.blue}${this.prefix}${this.colors.reset} ${this.colors.fg.red}✗${this.colors.reset} ${indentation}`, 
         ...formattedArgs
       );
@@ -247,34 +247,32 @@ export class Logger {
   }
 
   /**
-   * Debug log (magenta color)
+   * Debug log (cyan color)
    */
   debug(...args: any[]): void {
-    if (this.enabled) {
+    if (this.enabled && this.enabledLevels.has('debug')) {
       const formattedArgs = this.formatObjects(...args);
       const timestamp = this.getTimestamp();
       const indentation = this.getIndentation();
       console.log(
-        `${this.colors.fg.gray}${timestamp}${this.colors.reset} ${this.colors.fg.blue}${this.prefix}${this.colors.reset} ${this.colors.fg.magenta}🔍${this.colors.reset} ${indentation}`, 
+        `${this.colors.fg.gray}${timestamp}${this.colors.reset} ${this.colors.fg.blue}${this.prefix}${this.colors.reset} ${this.colors.fg.cyan}⚙${this.colors.reset} ${indentation}`, 
         ...formattedArgs
       );
     }
   }
 
-  /**
-   * Get a color for a specific log level
-   */
   private getLevelColor(level: string): string {
-    const levelColors: Record<string, string> = {
-      'template': this.colors.fg.magenta,
-      'data': this.colors.fg.cyan,
-      'parse': this.colors.fg.yellow,
-      'debug': this.colors.fg.magenta,
-      'info': this.colors.fg.blue,
-      'warn': this.colors.fg.yellow,
-      'error': this.colors.fg.red
-    };
-
-    return levelColors[level] || this.colors.fg.white;
+    switch (level) {
+      case 'debug':
+        return this.colors.fg.cyan;
+      case 'template':
+        return this.colors.fg.magenta;
+      case 'data':
+        return this.colors.fg.yellow;
+      case 'parse':
+        return this.colors.fg.green;
+      default:
+        return this.colors.fg.gray;
+    }
   }
 } 

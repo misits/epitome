@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from './Logger';
-import { HandlebarsLikeEngine } from './HandlebarsLikeEngine';
-import { MarkdownProcessor } from './MarkdownProcessor';
-import { AssetProcessor } from './AssetProcessor';
-import { GeneratorOptions, ResolvedGeneratorOptions, TemplateEngine } from '../types/interfaces';
+import { Logger } from '../../lib/core/Logger';
+import { HandlebarsLikeEngine } from '../../lib/engine/HandlebarsLikeEngine';
+import { MarkdownProcessor } from '../../lib/markdown/MarkdownProcessor';
+import { AssetProcessor } from '../../lib/assets/AssetProcessor';
+import { GeneratorOptions, ResolvedGeneratorOptions, TemplateEngine } from '../../types/interfaces';
 
 /**
  * Generator - Main class that orchestrates the CV generation process
@@ -20,7 +20,7 @@ export class Generator {
     // Initialize with default values
     this.options = {
       outputDir: options.outputDir ?? './public',
-      mdDir: options.mdDir ?? './md',
+      mdDir: options.mdDir ?? './src/md',
       templatesDir: options.templatesDir ?? './src/templates',
       scssDir: options.scssDir ?? './src/scss',
       debug: options.debug ?? false,
@@ -200,79 +200,63 @@ export class Generator {
         this.logger.info(`  - Templates: ${templatesDir}`);
         this.logger.info(`  - SCSS: ${scssDir}`);
         
-        // Set up file watchers
-        const watcher = chokidar.watch([
-          path.join(mdDir, '**/*.md'),
-          path.join(templatesDir, '**/*.html'),
-          path.join(scssDir, '**/*.scss')
-        ], {
-          ignoreInitial: true,
-          awaitWriteFinish: {
-            stabilityThreshold: 300,
-            pollInterval: 100
+        // Watch md files
+        chokidar.watch(`${mdDir}/**/*.md`).on('change', (filePath: string) => {
+          const filename = filePath.split('/').pop() || '';
+          this.logger.info(`Markdown file changed: ${filename}`);
+          
+          if (filename === 'index.md') {
+            this.build(filename, 'index.html');
+          } else {
+            const pageName = filename.replace('.md', '');
+            this.build(filename, `${pageName}/index.html`);
           }
         });
         
-        // Handle file changes
-        watcher.on('change', (filePath: string) => {
-          this.logger.info(`File changed: ${filePath}`);
-          
-          // Rebuild all files when any file changes
+        // Watch template files
+        chokidar.watch(`${templatesDir}/**/*.html`).on('change', (filePath: string) => {
+          this.logger.info(`Template file changed: ${filePath}`);
           this.buildAll();
         });
         
-        // Handle file deletions
-        watcher.on('unlink', (filePath: string) => {
-          // Only handle markdown file deletions
-          if (filePath.endsWith('.md')) {
-            this.logger.info(`File deleted: ${filePath}`);
-            
-            // Get the base filename without extension
-            const mdFile = path.basename(filePath);
-            const pageName = mdFile.replace('.md', '');
-            
-            // Determine the path to remove from the public folder
-            let pathToRemove;
-            if (mdFile === 'index.md') {
-              pathToRemove = path.join(process.cwd(), this.options.outputDir, 'index.html');
-            } else {
-              pathToRemove = path.join(process.cwd(), this.options.outputDir, pageName);
-            }
-            
-            // Remove the file or directory
-            if (fs.existsSync(pathToRemove)) {
-              if (fs.statSync(pathToRemove).isDirectory()) {
-                // Remove directory recursively
-                this.logger.info(`Removing directory: ${pathToRemove}`);
-                fs.rmSync(pathToRemove, { recursive: true, force: true });
-              } else {
-                // Remove file
-                this.logger.info(`Removing file: ${pathToRemove}`);
-                fs.unlinkSync(pathToRemove);
-              }
-              this.logger.success(`Removed ${pathToRemove}`);
-            }
-          }
+        // Watch SCSS files
+        chokidar.watch(`${scssDir}/**/*.scss`).on('change', (filePath: string) => {
+          this.logger.info(`SCSS file changed: ${filePath}`);
+          
+          // For SCSS, we only need to recompile the main theme files
+          const themeFilename = filePath.split('/').pop() || '';
+          const theme = themeFilename.replace('.scss', '');
+          
+          // Get the output path
+          const outputCssPath = path.join(process.cwd(), this.options.outputDir, 'style.css');
+          
+          // Compile SCSS
+          this.assetProcessor.compileSass(filePath, outputCssPath, this.options.minifyCss);
         });
         
-        this.logger.success('Watch mode started successfully!');
+        this.logger.success('Watching for changes. Press Ctrl+C to stop.');
       } catch (error) {
-        this.logger.error('Failed to initialize watch mode with chokidar:', error);
-        this.logger.warn('Please install chokidar with: npm install chokidar');
+        this.logger.error('Chokidar is not available. Please install it with: npm install chokidar');
+        throw error;
       }
     } catch (error) {
-      this.logger.error('Watch mode failed:', error);
+      this.logger.error('Error starting watch mode:', error);
       throw error;
     }
   }
   
   /**
-   * Utility method to ensure a directory exists
+   * Create a directory if it doesn't already exist
    */
   private ensureDirectoryExists(dirPath: string): void {
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-      this.logger.debug(`Created directory: ${dirPath}`);
+    try {
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        this.logger.info(`Created directory: ${dirPath}`);
+      }
+    } catch (error) {
+      this.logger.error(`Error creating directory: ${dirPath}`, error);
+      throw error;
     }
   }
-}
+} 

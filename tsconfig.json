@@ -9,8 +9,14 @@
       "forceConsistentCasingInFileNames": true,
       "strict": true,
       "skipLibCheck": true,
-      "types": ["node", "marked"]
+      "types": ["node", "marked"],
+      "paths": {
+        "@/*": ["./core/*"],
+        "@lib/*": ["./core/lib/*"],
+        "@types/*": ["./core/types/*"],
+        "@utils/*": ["./core/utils/*"]
+      }
     },
-    "include": ["src/**/*"],
+    "include": ["core/**/*", "src/**/*"],
     "exclude": ["node_modules", "dist"]
 }
