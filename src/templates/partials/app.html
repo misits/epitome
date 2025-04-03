@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - {{name}}</title>
+    <meta name="description" content="{{summary}}">
+    <link rel="stylesheet" href="{{@assetPath 'style.css'}}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{@assetPath 'favicon/apple-touch-icon.png'}}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{@assetPath 'favicon/favicon-32x32.png'}}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{@assetPath 'favicon/favicon-16x16.png'}}">
+    <link rel="manifest" href="{{@assetPath 'favicon/site.webmanifest'}}">
+    
+    {{@yield "head"}}
+</head>
+<body class="theme-{{theme}}">
+    <div class="container">
+        <header class="header">
+            <h1>{{name}}</h1>
+            <h2 class="tagline">{{title}}</h2>
+            <div class="summary">{{summary}}</div>
+            
+            {{@yield "header"}}
+            
+            <div class="contact-info">
+                {{@if email}}
+                <div class="contact-item">
+                    <span>Contact:</span>
+                    <a href="mailto:{{email}}">{{email}}</a>
+                </div>
+                {{/if}}
+                {{@if location}}
+                <div class="contact-item">
+                    <span>Type:</span>
+                    <span>{{location}}</span>
+                </div>
+                {{/if}}
+                {{@if website}}
+                <div class="contact-item">
+                    <span>GitHub:</span>
+                    <a href="{{website}}" target="_blank">{{website}}</a>
+                </div>
+                {{/if}}
+            </div>
+        </header>
+
+        <main>
+            {{@yield "content"}}
+            
+            {{{content}}}
+        </main>
+
+        <footer class="footer">
+            <p>Made with ❤️ using <a href="https://github.com/misits/epitome" target="_blank">Epitome</a> - the lightweight static site generator</p>
+            
+            {{@yield "footer"}}
+            
+            <nav class="site-nav">
+                <a href="{{@urlPath '/'}}">Home</a>
+                <a href="{{@urlPath 'about'}}">About</a>
+            </nav>
+        </footer>
+    </div>
+</body>
+</html> 

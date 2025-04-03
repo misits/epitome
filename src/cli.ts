@@ -34,7 +34,7 @@ Epito.me - Static CV Generator
 Usage: epitome [options]
 
 Options:
-  --page, -p <file>         Page markdown file (default: page.md)
+  --page, -p <file>         Page markdown file (default: index.md)
   --output, -o <dir>       Output directory (default: ./public)
   --md-dir <dir>           Markdown files directory (default: ./md)
   --templates-dir <dir>    Templates directory (default: ./src/templates)
@@ -107,7 +107,7 @@ if (args.includes('--dev')) {
     }
     
     // Build with specified profile file or default
-    generator.build(options.page || 'page.md');
+    generator.build(options.page || 'index.md');
     
     console.log('✅ Build completed successfully!');
   } catch (error) {

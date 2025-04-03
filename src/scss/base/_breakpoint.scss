@@ -1,0 +1,122 @@
+@use 'sass:map';
+@use 'variables' as *;
+
+// Breakpoint Mixins
+@mixin breakpoint-up($breakpoint) {
+    @if map.has-key($breakpoints, $breakpoint) {
+      $min-width: map.get($breakpoints, $breakpoint);
+      @media screen and (min-width: $min-width) {
+        @content;
+      }
+    } @else {
+      @warn "Invalid breakpoint: #{$breakpoint}. Available breakpoints are: #{map.keys($breakpoints)}";
+    }
+  }
+
+  @mixin breakpoint-down($breakpoint) {
+    @if map.has-key($breakpoints, $breakpoint) {
+      $max-width: map.get($breakpoints, $breakpoint) - 0.02px;
+      @media screen and (max-width: $max-width) {
+        @content;
+      }
+    } @else {
+      @warn "Invalid breakpoint: #{$breakpoint}. Available breakpoints are: #{map.keys($breakpoints)}";
+    }
+  }
+
+@mixin breakpoint-between($lower, $upper) {
+  @if map.has-key($breakpoints, $lower) and map.has-key($breakpoints, $upper) {
+    $min-width: map.get($breakpoints, $lower);
+    $max-width: map.get($breakpoints, $upper) - 0.02px;
+    @media screen and (min-width: $min-width) and (max-width: $max-width) {
+      @content;
+    }
+  } @else {
+    @warn "Invalid breakpoints: #{$lower} and/or #{$upper}. Available breakpoints are: #{map.keys($breakpoints)}";
+  }
+}
+
+@mixin breakpoint-only($breakpoint) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    $width: map.get($breakpoints, $breakpoint);
+    $next-breakpoint: null;
+    $breakpoint-keys: map.keys($breakpoints);
+    $breakpoint-index: index($breakpoint-keys, $breakpoint);
+    
+    @if $breakpoint-index < length($breakpoint-keys) {
+      $next-breakpoint: nth($breakpoint-keys, $breakpoint-index + 1);
+      $next-width: map.get($breakpoints, $next-breakpoint);
+      
+      @media screen and (min-width: $width) and (max-width: ($next-width - 0.02px)) {
+        @content;
+      }
+    } @else {
+      @media screen and (min-width: $width) {
+        @content;
+      }
+    }
+  } @else {
+    @warn "Invalid breakpoint: #{$breakpoint}. Available breakpoints are: #{map.keys($breakpoints)}";
+  }
+}
+
+// Container widths
+$container-max-widths: (
+  'sm': 540px,
+  'md': 720px,
+  'lg': 960px,
+  'xl': 1140px,
+  '2xl': 1320px
+);
+
+// Container class
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--spacing-4);
+  padding-left: var(--spacing-4);
+
+  @each $breakpoint, $width in $container-max-widths {
+    @include breakpoint-up($breakpoint) {
+      max-width: $width;
+    }
+  }
+}
+
+.container-fluid {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: var(--spacing-4);
+  padding-left: var(--spacing-4);
+}
+
+// Responsive visibility helpers
+@each $breakpoint in map.keys($breakpoints) {
+  .hidden-#{$breakpoint}-up {
+    @include breakpoint-up($breakpoint) {
+      display: none !important;
+    }
+  }
+
+  .hidden-#{$breakpoint}-down {
+    @include breakpoint-down($breakpoint) {
+      display: none !important;
+    }
+  }
+
+  .show-#{$breakpoint}-up {
+    display: none !important;
+    @include breakpoint-up($breakpoint) {
+      display: block !important;
+    }
+  }
+
+  .show-#{$breakpoint}-down {
+    display: none !important;
+    @include breakpoint-down($breakpoint) {
+      display: block !important;
+    }
+  }
+}

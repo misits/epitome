@@ -27,11 +27,13 @@
     "author": "@misits",
     "license": "MIT",
     "dependencies": {
+        "csso": "^5.0.5",
         "gray-matter": "^4.0.3",
         "marked": "^9.1.0",
         "sass": "^1.66.1"
     },
     "devDependencies": {
+        "@types/csso": "^5.0.4",
         "@types/marked": "^5.0.1",
         "@types/node": "^20.6.0",
         "@vitest/coverage-v8": "^3.1.1",

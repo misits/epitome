@@ -1,4 +1,12 @@
 @use 'global';
 
+// Base theme styles
 .theme-default {
+ 
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .theme-default {
+  }
 }

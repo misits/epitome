@@ -1,0 +1,19 @@
+@use 'sass:map';
+@use 'variables' as *;
+@use 'breakpoint' as *;
+
+@mixin make-container($padding: var(--spacing-4)) {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: $padding;
+  padding-left: $padding;
+}
+
+@mixin make-container-max-widths {
+  @each $breakpoint, $width in $container-max-widths {
+    @include breakpoint-up($breakpoint) {
+      max-width: $width;
+    }
+  }
+}

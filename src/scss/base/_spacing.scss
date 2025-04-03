@@ -1,0 +1,127 @@
+@use 'sass:map';
+@use 'sass:meta';
+@use 'variables' as *;
+@use 'breakpoint' as *;
+
+$spacing-properties: (
+  'm': margin,
+  'p': padding
+);
+
+$spacing-directions: (
+  't': top,
+  'r': right,
+  'b': bottom,
+  'l': left,
+  'x': (left, right),
+  'y': (top, bottom)
+);
+
+// Base spacing
+@each $space-prop-key, $space-prop in $spacing-properties {
+  @each $size in (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 72, 80, 96) {
+    .#{$space-prop-key}-#{$size} {
+      #{$space-prop}: var(--spacing-#{$size});
+    }
+  }
+
+  @each $direction-key, $direction in $spacing-directions {
+    @each $size in (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 72, 80, 96) {
+      .#{$space-prop-key}#{$direction-key}-#{$size} {
+        @if meta.type-of($direction) == 'list' {
+          @each $dir in $direction {
+            #{$space-prop}-#{$dir}: var(--spacing-#{$size});
+          }
+        } @else {
+          #{$space-prop}-#{$direction}: var(--spacing-#{$size});
+        }
+      }
+    }
+  }
+
+  @if $space-prop-key == 'm' {
+    .#{$space-prop-key}-auto {
+      #{$space-prop}: auto;
+    }
+    
+    @each $direction-key, $direction in $spacing-directions {
+      .#{$space-prop-key}#{$direction-key}-auto {
+        @if meta.type-of($direction) == 'list' {
+          @each $dir in $direction {
+            #{$space-prop}-#{$dir}: auto;
+          }
+        } @else {
+          #{$space-prop}-#{$direction}: auto;
+        }
+      }
+    }
+  }
+}
+
+// Responsive spacing
+@each $breakpoint in map.keys($breakpoints) {
+  @if $breakpoint == '2xl' {
+    $breakpoint: 'xxl';
+  }
+  
+  @include breakpoint-up($breakpoint) {
+    @each $space-prop-key, $space-prop in $spacing-properties {
+      @each $size in (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 72, 80, 96) {
+        .#{$breakpoint}-#{$space-prop-key}-#{$size} {
+          #{$space-prop}: var(--spacing-#{$size});
+        }
+      }
+
+      @each $direction-key, $direction in $spacing-directions {
+        @each $size in (0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 72, 80, 96) {
+          .#{$breakpoint}-#{$space-prop-key}#{$direction-key}-#{$size} {
+            @if meta.type-of($direction) == 'list' {
+              @each $dir in $direction {
+                #{$space-prop}-#{$dir}: var(--spacing-#{$size});
+              }
+            } @else {
+              #{$space-prop}-#{$direction}: var(--spacing-#{$size});
+            }
+          }
+        }
+      }
+
+      @if $space-prop-key == 'm' {
+        .#{$breakpoint}-#{$space-prop-key}-auto {
+          #{$space-prop}: auto;
+        }
+        
+        @each $direction-key, $direction in $spacing-directions {
+          .#{$breakpoint}-#{$space-prop-key}#{$direction-key}-auto {
+            @if meta.type-of($direction) == 'list' {
+              @each $dir in $direction {
+                #{$space-prop}-#{$dir}: auto;
+              }
+            } @else {
+              #{$space-prop}-#{$direction}: auto;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Negative margins
+@each $size in (1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 72, 80, 96) {
+  .-m-#{$size} {
+    margin: calc(var(--spacing-#{$size}) * -1);
+  }
+
+  @each $direction-key, $direction in $spacing-directions {
+    .-m#{$direction-key}-#{$size} {
+      @if meta.type-of($direction) == 'list' {
+        @each $dir in $direction {
+          margin-#{$dir}: calc(var(--spacing-#{$size}) * -1);
+        }
+      } @else {
+        margin-#{$direction}: calc(var(--spacing-#{$size}) * -1);
+      }
+    }
+  }
+}

@@ -1,0 +1,211 @@
+@use 'sass:map';
+@use 'variables' as *;
+@use 'breakpoint' as *;
+
+// Grid Variables
+$grid-columns: 12;
+$grid-gap: var(--spacing-4);
+$grid-gap-sm: var(--spacing-2);
+$grid-gap-lg: var(--spacing-6);
+
+// Grid Mixins
+@mixin make-grid($columns: $grid-columns, $gap: $grid-gap) {
+  display: grid;
+  grid-template-columns: repeat($columns, minmax(0, 1fr));
+  gap: $gap;
+}
+
+@mixin make-col($span: 12) {
+  grid-column: span min($span, $grid-columns) / span min($span, $grid-columns);
+}
+
+// Basic Grid Classes
+.grid {
+  @include make-grid;
+}
+
+// Grid Gaps
+.grid-gap-0 {
+  gap: 0;
+}
+
+.grid-gap-sm {
+  gap: $grid-gap-sm;
+}
+
+.grid-gap-lg {
+  gap: $grid-gap-lg;
+}
+
+// Column Spans
+@for $i from 1 through $grid-columns {
+  .col-#{$i} {
+    @include make-col($i);
+  }
+  
+  @each $breakpoint in map.keys($breakpoints) {
+    .col-#{$breakpoint}-#{$i} {
+      @include breakpoint-up($breakpoint) {
+        @include make-col($i);
+      }
+    }
+  }
+}
+
+// Auto Grid System
+.grid-auto-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: $grid-gap;
+}
+
+.grid-auto-md {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: $grid-gap;
+}
+
+.grid-auto-lg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(384px, 1fr));
+  gap: $grid-gap;
+}
+
+// Fixed Column Grids
+.grid-cols-1 { 
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+
+  @include breakpoint-down(md) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+.grid-cols-2 { 
+  grid-template-columns: repeat(2, minmax(0, 1fr)); 
+
+  @include breakpoint-down(md) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+.grid-cols-3 { 
+  grid-template-columns: repeat(3, minmax(0, 1fr)); 
+
+  @include breakpoint-down(md) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+.grid-cols-4 { 
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  @include breakpoint-down(md) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+.grid-cols-5 { 
+  grid-template-columns: repeat(5, minmax(0, 1fr)); 
+
+  @include breakpoint-down(md) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+.grid-cols-6 { 
+  grid-template-columns: repeat(6, minmax(0, 1fr)); 
+
+  @include breakpoint-down(md) {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+// Responsive Fixed Column Grids
+@each $breakpoint in map.keys($breakpoints) {
+  @include breakpoint-up($breakpoint) {
+    .grid-#{$breakpoint}-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .grid-#{$breakpoint}-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-#{$breakpoint}-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-#{$breakpoint}-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-#{$breakpoint}-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .grid-#{$breakpoint}-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  }
+}
+
+// Grid Alignments
+.grid-align-start { align-items: start; }
+.grid-align-center { align-items: center; }
+.grid-align-end { align-items: end; }
+.grid-align-stretch { align-items: stretch; }
+
+.grid-justify-start { justify-items: start; }
+.grid-justify-center { justify-items: center; }
+.grid-justify-end { justify-items: end; }
+.grid-justify-stretch { justify-items: stretch; }
+
+// Grid Flow
+.grid-flow-row { grid-auto-flow: row; }
+.grid-flow-col { grid-auto-flow: column; }
+.grid-flow-dense { grid-auto-flow: dense; }
+
+// Grid Item Placement
+.col-start-auto { grid-column-start: auto; }
+.col-end-auto { grid-column-end: auto; }
+.row-start-auto { grid-row-start: auto; }
+.row-end-auto { grid-row-end: auto; }
+
+@for $i from 1 through ($grid-columns + 1) {
+  .col-start-#{$i} { grid-column-start: #{$i}; }
+  .col-end-#{$i} { grid-column-end: #{$i}; }
+  .row-start-#{$i} { grid-row-start: #{$i}; }
+  .row-end-#{$i} { grid-row-end: #{$i}; }
+}
+
+// Grid Areas
+.grid-template-areas {
+  display: grid;
+  gap: $grid-gap;
+}
+
+// Sample grid areas setup
+.grid-template-dashboard {
+  grid-template-areas: 
+    "header header header"
+    "sidebar main main"
+    "footer footer footer";
+  
+  @include breakpoint-down(md) {
+    grid-template-areas: 
+      "header"
+      "sidebar"
+      "main"
+      "footer";
+  }
+}
+
+// Area classes
+.grid-area-header { grid-area: header; }
+.grid-area-sidebar { grid-area: sidebar; }
+.grid-area-main { grid-area: main; }
+.grid-area-footer { grid-area: footer; }
+
+// Helper classes for common layouts
+.grid-masonry {
+  column-count: 3;
+  column-gap: $grid-gap;
+  
+  @include breakpoint-down(md) {
+    column-count: 2;
+  }
+  
+  @include breakpoint-down(sm) {
+    column-count: 1;
+  }
+  
+  > * {
+    break-inside: avoid;
+    margin-bottom: $grid-gap;
+  }
+}
+
+// Equal height grid items
+.grid-equal-height {
+  > * {
+    height: 100%;
+  }
+}

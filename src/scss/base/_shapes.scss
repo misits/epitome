@@ -1,0 +1,18 @@
+// Circle
+.circle {
+    border-radius: 50%;
+}
+
+// Pills
+.pill {
+    border-radius: 9999px;
+}
+
+// Custom shapes
+.clip-triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.clip-diamond {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}

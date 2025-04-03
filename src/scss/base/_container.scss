@@ -1,0 +1,163 @@
+@use 'sass:map';
+@use 'variables' as *;
+@use 'breakpoint' as *;
+@use 'container-mixins' as *;
+
+// Container Base Classes
+.container {
+  @include make-container();
+  @include make-container-max-widths();
+}
+
+.container-fluid {
+  @include make-container();
+}
+
+// Fixed Size Containers
+.container-sm {
+  @include make-container();
+  max-width: map.get($container-max-widths, 'sm');
+}
+
+.container-md {
+  @include make-container();
+  max-width: map.get($container-max-widths, 'md');
+}
+
+.container-lg {
+  @include make-container();
+  max-width: map.get($container-max-widths, 'lg');
+}
+
+.container-xl {
+  @include make-container();
+  max-width: map.get($container-max-widths, 'xl');
+}
+
+.container-2xl {
+  @include make-container();
+  max-width: map.get($container-max-widths, '2xl');
+}
+
+.container-3xl {
+  @include make-container();
+  max-width: map.get($container-max-widths, '3xl');
+}
+
+// Modifiers
+.container-no-padding {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.container-padding-sm {
+  padding-right: var(--spacing-2);
+  padding-left: var(--spacing-2);
+}
+
+.container-padding-lg {
+  padding-right: var(--spacing-6);
+  padding-left: var(--spacing-6);
+}
+
+// Content width constraints
+.content-xs {
+  max-width: 20rem; // 320px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-sm {
+  max-width: 24rem; // 384px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-md {
+  max-width: 28rem; // 448px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-lg {
+  max-width: 32rem; // 512px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-xl {
+  max-width: 36rem; // 576px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-2xl {
+  max-width: 42rem; // 672px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-3xl {
+  max-width: 48rem; // 768px
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// Centered content wrapper
+.content-wrapper {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  
+  > * {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// Section Spacings
+.section {
+  padding-top: var(--spacing-8);
+  padding-bottom: var(--spacing-8);
+  
+  @include breakpoint-up(md) {
+    padding-top: var(--spacing-12);
+    padding-bottom: var(--spacing-12);
+  }
+  
+  @include breakpoint-up(lg) {
+    padding-top: var(--spacing-16);
+    padding-bottom: var(--spacing-16);
+  }
+}
+
+.section-sm {
+  padding-top: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  
+  @include breakpoint-up(md) {
+    padding-top: var(--spacing-6);
+    padding-bottom: var(--spacing-6);
+  }
+}
+
+.section-lg {
+  padding-top: var(--spacing-12);
+  padding-bottom: var(--spacing-12);
+  
+  @include breakpoint-up(md) {
+    padding-top: var(--spacing-20);
+    padding-bottom: var(--spacing-20);
+  }
+}
+
+// Container Utilities
+.mx-container {
+  margin-left: var(--spacing-4);
+  margin-right: var(--spacing-4);
+}
+
+.px-container {
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}

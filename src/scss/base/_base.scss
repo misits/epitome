@@ -1,0 +1,282 @@
+@use "sass:map";
+
+// Modern CSS Reset and Base Styles
+
+// Custom Properties
+:root {
+    --scroll-behavior: smooth;
+    --focus-ring-color: rgba(0, 123, 255, 0.25);
+    --selection-background: rgba(0, 123, 255, 0.2);
+    --transition-speed: 0.3s;
+    --transition-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Base Reset
+html {
+    box-sizing: border-box;
+    scroll-behavior: var(--scroll-behavior);
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    height: 100%;
+
+    @media (prefers-reduced-motion: reduce) {
+        --scroll-behavior: auto;
+        scroll-behavior: auto;
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+    margin: 0;
+    padding: 0;
+}
+
+// Body Base
+body {
+    min-height: 100%;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    position: relative;
+
+    // Loading States
+    &.is-loading {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity var(--transition-speed) var(--transition-function);
+    }
+
+    &.transition-ready {
+        .transition {
+            transition: all 0.7s var(--transition-function);
+        }
+    }
+
+    &.transition-active {
+        opacity: 1;
+
+        .transition {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+}
+
+// Typography Reset
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+// Links
+a {
+    text-decoration: none;
+    color: inherit;
+
+    &:focus-visible {
+        outline: 2px solid var(--focus-ring-color);
+        outline-offset: 2px;
+    }
+}
+
+// Lists
+ul,
+ol {
+    list-style: none;
+}
+
+// Media
+img,
+picture,
+video,
+canvas,
+svg {
+    height: auto;
+}
+
+// Forms
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+
+    &:focus-visible {
+        outline: 2px solid var(--focus-ring-color);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
+// Text Selection
+::selection {
+    background-color: var(--selection-background);
+}
+
+// Accessibility
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.sr-only-focusable:not(:focus) {
+    @extend .sr-only;
+}
+
+// Anchor Links
+span.anchor {
+    display: block;
+    position: relative;
+    top: -130px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+// Content Elements
+blockquote {
+    border-left: 2px solid var(--color-gray-300);
+    padding-left: var(--spacing-4);
+    margin-left: var(--spacing-4);
+    font-style: italic;
+    color: var(--color-gray-700);
+}
+
+// Table Reset
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+// Form Reset
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+// Remove default styling
+[role="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="button"],
+button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+// Remove spinners from number inputs
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+// Custom Scrollbar
+@media (hover: hover) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-gray-400) transparent;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: var(--color-gray-400);
+            border-radius: 4px;
+
+            &:hover {
+                background-color: var(--color-gray-500);
+            }
+        }
+    }
+}
+
+// Print Styles
+@media print {
+    @page {
+        margin: 2cm;
+    }
+
+    body {
+        min-height: 0 !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
+
+// Helper Classes
+.clearfix::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+.visually-hidden {
+    @extend .sr-only;
+}
+
+.no-scroll {
+    overflow: hidden !important;
+}
+
+.text-break {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+.text-truncate {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}

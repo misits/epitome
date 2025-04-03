@@ -72,7 +72,7 @@ Thumbs.db
 
 # Project specific files
 # Exclude example profiles, keep them in git
-!md/profile.md
+!md/page.md
 
 # Test artifacts
 **/.test-tmp/

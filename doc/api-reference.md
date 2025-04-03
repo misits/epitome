@@ -42,14 +42,14 @@ const generator = new Generator({
 ##### build
 
 ```typescript
-build(mdFilename: string = 'page.md', outputHtmlFilename: string = 'index.html'): void
+build(mdFilename: string = 'index.md', outputHtmlFilename: string = 'index.html'): void
 ```
 
 Builds the CV site from markdown to HTML with styling.
 
 **Parameters:**
 
-- `mdFilename` (string, optional): The markdown file to process (default: 'page.md')
+- `mdFilename` (string, optional): The markdown file to process (default: 'index.md')
 - `outputHtmlFilename` (string, optional): The output HTML filename (default: 'index.html')
 
 **Example:**
@@ -437,6 +437,75 @@ Iterates over an array or object.
 
 Generates an unordered list from an array.
 
+### Partials
+
+```
+{{@partial 'partialName'}}
+```
+
+Includes a partial template from the templates/partials directory. The partial inherits the current template's context.
+
+You can also use a variable for the partial name:
+
+```
+{{@partial partialVariable}}
+```
+
+### Yield Blocks
+
+Yield blocks allow defining content sections that can be overridden by child templates. This enables powerful layout composition and template inheritance.
+
+In a layout template (for example `partials/app.html`), define yield blocks:
+
+```
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{title}}</title>
+</head>
+<body>
+  <header>
+    {{@yield "header"}}
+      <h1>Default Header</h1>
+    {{/yield}}
+  </header>
+  
+  <main>
+    {{@yield "content"}}
+      <p>Default content</p>
+    {{/yield}}
+  </main>
+  
+  <footer>
+    {{@yield "footer"}}
+      <p>Default footer</p>
+    {{/yield}}
+  </footer>
+</body>
+</html>
+```
+
+Then in a child template that uses this layout, you can override any or all of the yield blocks:
+
+```
+{{@partial 'app'}}
+
+{{@yield "header"}}
+  <h1>Custom Header</h1>
+  <p>This overrides the default header</p>
+{{/yield}}
+
+{{@yield "content"}}
+  <div class="custom-content">
+    {{{content}}}
+  </div>
+{{/yield}}
+
+{{/partial}}
+```
+
+Yield blocks that aren't explicitly overridden will use their default content. This allows for flexible templates with sensible defaults.
+
 ## Extension Points
 
 ### Creating Custom Template Engines
@@ -492,7 +561,7 @@ class CustomGenerator extends Generator {
     // Additional initialization
   }
   
-  build(mdFilename: string = 'page.md', outputHtmlFilename: string = 'index.html') {
+  build(mdFilename: string = 'index.md', outputHtmlFilename: string = 'index.html') {
     // Custom build logic
     // You can call super.build() or implement your own logic
   }

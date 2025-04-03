@@ -1,0 +1,9 @@
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  conditions = {Path = {match = "\\.[^\\/]+$", pattern = "404"}}
+
+[build]
+  publish = "public/" 

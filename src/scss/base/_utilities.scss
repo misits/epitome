@@ -1,0 +1,93 @@
+@use 'breakpoint' as *;
+@use 'variables' as *;
+
+// Display
+.hidden { display: none !important; }
+.block { display: block !important; }
+.inline { display: inline !important; }
+.inline-block { display: inline-block !important; }
+.flex { display: flex !important; }
+.inline-flex { display: inline-flex !important; }
+.grid { display: grid !important; }
+
+// Spacing helpers
+.m-auto { margin: auto !important; }
+.mx-auto { 
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.my-auto {
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+}
+
+// Position
+.relative { position: relative !important; }
+.absolute { position: absolute !important; }
+.fixed { position: fixed !important; }
+.sticky { position: sticky !important; }
+
+// Flex utilities
+.flex-row { flex-direction: row !important; }
+.flex-col { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+
+.items-start { align-items: flex-start !important; }
+.items-center { align-items: center !important; }
+.items-end { align-items: flex-end !important; }
+
+.justify-start { justify-content: flex-start !important; }
+.justify-center { justify-content: center !important; }
+.justify-end { justify-content: flex-end !important; }
+.justify-between { justify-content: space-between !important; }
+
+// Responsive visibility
+// Instead of using map.keys, we'll explicitly list breakpoints
+@each $breakpoint in ('sm', 'md', 'lg', 'xl', '2xl') {
+  @include breakpoint-up($breakpoint) {
+    .show-#{$breakpoint} {
+      display: block !important;
+    }
+  }
+  
+  @include breakpoint-down($breakpoint) {
+    .hide-#{$breakpoint} {
+      display: none !important;
+    }
+  }
+}
+
+// Background utilities
+.bg-cover {
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.bg-contain {
+  background-size: contain !important;
+  background-position: center !important;
+}
+
+// Overlay utility
+.overlay {
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+// Focus management
+.focus-visible {
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}

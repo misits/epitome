@@ -11,6 +11,7 @@ export class MarkdownProcessor {
   
   constructor(logger: Logger) {
     this.logger = logger;
+    this.logger.logLevel('debug', 'MarkdownProcessor initialized');
   }
   
   parse(filePath: string): { data: any, content: string } {
@@ -28,7 +29,7 @@ export class MarkdownProcessor {
         content 
       };
     } catch (error) {
-      this.logger.error(`Error parsing markdown file: ${error}`);
+      this.logger.error(`Error parsing markdown file:`, error);
       throw error;
     }
   }
@@ -61,13 +62,13 @@ export class MarkdownProcessor {
   private normalizeArray(data: any, arrayName: string): any[] {
     // Fix nested array like experience.experience
     if (!Array.isArray(data) && data[arrayName] && Array.isArray(data[arrayName])) {
-      this.logger.logLevel('data', `Fixed nested ${arrayName} array structure`);
+      this.logger.debug(`Fixed nested ${arrayName} array structure`);
       data = data[arrayName];
     }
   
     // Wrap in array if it's not already
     if (!Array.isArray(data)) {
-      this.logger.logLevel('data', `Converted ${arrayName} to array`);
+      this.logger.debug(`Converted ${arrayName} to array`);
       data = [data];
     }
   
@@ -82,13 +83,13 @@ export class MarkdownProcessor {
   
           // Fix nested structure like tasks.tasks
           if (!Array.isArray(value) && value && value[key] && Array.isArray(value[key])) {
-            this.logger.logLevel('data', `Fixed nested ${key} array structure in ${arrayName}`);
+            this.logger.debug(`Fixed nested ${key} array structure in ${arrayName}`);
             item[key] = value[key];
           }
   
           // Convert single value into array
           if (value && !Array.isArray(value)) {
-            this.logger.logLevel('data', `Converted ${key} to array in ${arrayName}`);
+            this.logger.debug(`Converted ${key} to array in ${arrayName}`);
             item[key] = [value];
           }
         });
@@ -96,5 +97,4 @@ export class MarkdownProcessor {
       return item;
     });
   }
-  
 } 

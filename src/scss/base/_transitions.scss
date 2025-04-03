@@ -1,0 +1,18 @@
+/* Ensure the transition wrapper is not causing layout or overflow issues */
+.transition-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden; /* Keep this if necessary to prevent content overflow */
+}
+
+/* Use only visibility for is-loading without conflicting with GSAP */
+body.is-loading {
+    opacity: 0;
+    visibility: hidden; /* Hides the body but doesn't interfere with GSAP */
+}
+
+/* Avoid global opacity transitions that conflict with GSAP */
+body {
+    transition: opacity 0.4s ease;
+    visibility: visible;
+}
