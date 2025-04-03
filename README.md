@@ -308,13 +308,11 @@ When using clean URLs (folder-based structure), you need to ensure that asset pa
 Use the `assetPath` helper to reference assets and the `urlPath` helper for internal links:
 
 ```html
-<!-- CSS and other assets -->
-<link rel="stylesheet" href="{{assetPath 'style.css'}}">
-<img src="{{assetPath 'images/photo.jpg'}}" alt="Photo">
+<link rel="stylesheet" href="{{@assetPath 'style.css'}}">
+<img src="{{@assetPath 'images/photo.jpg'}}" alt="Photo">
 
-<!-- Internal links -->
-<a href="{{urlPath 'about'}}">About</a>
-<a href="{{urlPath '/'}}">Home</a>
+<a href="{{@urlPath 'about'}}">About</a>
+<a href="{{@urlPath '/'}}">Home</a>
 ```
 
 These helpers automatically adjust paths based on the current page's depth in the folder structure, ensuring assets are properly loaded from any page.
