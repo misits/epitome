@@ -13,7 +13,6 @@
     "scripts": {
         "build": "ts-node -r tsconfig-paths/register core/bin/cli.ts",
         "build:all": "ts-node -r tsconfig-paths/register core/build.ts",
-        "build:gh-pages": "ts-node -r tsconfig-paths/register core/build.ts && vite build && touch public/.nojekyll",
         "dev": "ts-node -r tsconfig-paths/register core/bin/dev.ts",
         "watch": "ts-node -r tsconfig-paths/register core/build.ts --watch",
         "vite-dev": "VITE_RUNTIME=true ts-node -r tsconfig-paths/register core/bin/dev.ts",

@@ -1,13 +1,9 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
-// Get the repository name for GitHub Pages deployment
-const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
-const base = process.env.GITHUB_ACTIONS ? `/${repo}/` : './';
-
 export default defineConfig({
-  // Base public path - dynamically set for GitHub Pages
-  base,
+  // Base public path - can be changed for deployment to subdirectories
+  base: './',
   
   // Configure build options
   build: {
