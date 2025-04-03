@@ -31,11 +31,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Build site
-        run: npm run build:all
-        
-      - name: Build with Vite
-        run: npm run vite-build
+      - name: Build for GitHub Pages
+        run: npm run build:gh-pages
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
