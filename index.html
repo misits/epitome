@@ -1,113 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>John Doe | epito.me</title>
-    <link rel="stylesheet" href="style.css">
-    <meta name="description" content="Experienced software engineer with a passion for building scalable web applications and solving complex problems.">
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
-    <link rel="manifest" href="favicon/site.webmanifest">
+    <title>Home Page - Epitome Generator</title>
+    <meta name="description" content="A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png">
+    <link rel="manifest" href="./favicon/site.webmanifest">
+    
+    <!-- Custom head content -->
+    <style>
+        .app-title {
+            color: #1a73e8;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        
+        .custom-insertion {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #1a73e8;
+        }
+    </style>
 </head>
-
 <body class="theme-default">
     <div class="container">
         <header class="header">
-            <h1>John Doe</h1>
-            <div class="summary">Experienced software engineer with a passion for building scalable web applications and solving complex problems.</div>
+            <h1>Epitome Generator</h1>
+            <h2 class="tagline">Home Page</h2>
+            <div class="summary">A lightweight static site generator for creating beautiful single-page websites and landing pages from markdown files.</div>
+            
+            <div class="custom-insertion">
+        <p>⭐ This content is inserted right after the summary and before contact info</p>
+    </div>
+            
             <div class="contact-info">
                 
                 <div class="contact-item">
-                    <span>Email:</span>
-                    <a href="mailto:john@doe.com">john@doe.com</a>
+                    <span>Contact:</span>
+                    <a href="mailto:info@epitome.dev">info@epitome.dev</a>
                 </div>
                 
                 
-                <div class="contact-item">
-                    <span>Phone:</span>
-                    <span>+41 (0)12 345 67 89</span>
-                </div>
-                
                 
                 <div class="contact-item">
-                    <span>Location:</span>
-                    <span>Switzerland, VS</span>
-                </div>
-                
-                
-                <div class="contact-item">
-                    <span>Website:</span>
-                    <a href="https://website.com" target="_blank">https://website.com</a>
+                    <span>GitHub:</span>
+                    <a href="https://github.com/misits/epitome" target="_blank">https://github.com/misits/epitome</a>
                 </div>
                 
             </div>
         </header>
 
-        
-        <section class="section experience-section">
-            <h2>Experience</h2>
+        <main>
+            <div class="custom-insertion">
+    <h3>Content Before Main</h3>
+    <p>This appears before the main content.</p>
+</div>
             
-            <div class="experience-item">
-                <h3>Web developer at JohnDoe Corp</h3>
-                <div class="meta">
-                    <span>01.01.2025 - now</span>
-                </div>
-                
-                <ul id="experience-tasks" class="task-list"><li>Task 1</li><li>Task 2</li></ul>
-                
-            </div>
-            
-        </section>
-        
+            <h1>Welcome to Epitome</h1>
+<p>Epitome is a simple yet powerful static site generator designed to create beautiful, responsive websites from markdown content. It&#39;s especially well-suited for landing pages and single-page websites where you want to go from content to published site with minimal effort.</p>
+<h2>Quick Start</h2>
+<p>Getting started with Epitome is straightforward:</p>
+<pre><code class="language-bash"># Clone the repository
+git clone https://github.com/misits/epitome.git
+cd epitome
 
-        
-        <section class="section education-section">
-            <h2>Education</h2>
-            
-            <div class="education-item">
-                <h3>Life University</h3>
-                <div class="meta">
-                    <span>01.01.1970 - now</span>
-                </div>
-            </div>
-            
-        </section>
-        
+# Install dependencies
+npm install
 
+# Start development server
+npm run dev
+</code></pre>
+<h2>How It Works</h2>
+<ol>
+<li><strong>Create markdown files</strong> with YAML frontmatter for structured data</li>
+<li><strong>Choose or create a theme</strong> by defining HTML templates</li>
+<li><strong>Style your site</strong> with SCSS files</li>
+<li><strong>Generate your site</strong> with a single command</li>
+<li><strong>Deploy anywhere</strong> - it&#39;s just static HTML and CSS!</li>
+</ol>
+<h2>Command Line Options</h2>
+<p>Epitome offers various command line options for customization:</p>
+<pre><code class="language-bash">epitome [options]
 
-        
-        <section class="section work-section">
-            <h2>Projects</h2>
+Options:
+  --page, -p &lt;file&gt;         Page markdown file (default: index.md)
+  --output, -o &lt;dir&gt;        Output directory (default: ./public)
+  --md-dir &lt;dir&gt;            Markdown files directory (default: ./md)
+  --templates-dir &lt;dir&gt;     Templates directory (default: ./src/templates)
+  --scss-dir &lt;dir&gt;          SCSS directory (default: ./src/scss)
+  --dev                     Start development server with live reload
+  --no-minify               Disable CSS minification
+</code></pre>
+<p><a href="about/">Check out the About page</a> to see another example page or visit the <a href="https://github.com/misits/epitome">GitHub repository</a> for more information.</p>
+
+        </main>
+
+        <footer class="footer">
+            <p>Made with ❤️ using <a href="https://github.com/misits/epitome" target="_blank">Epitome</a> - the lightweight static site generator</p>
             
-            <div class="project-item">
-                <h3>title</h3>
-                <div class="meta">
-                    <span>01.01.2025</span>
-                    
-                    <a href="https://website.com/project" target="_blank">View Project</a>
-                    
-                </div>
-                
-                <div class="project-summary">
-                    <p>Here comes the project description
-</p>
-                </div>
-                
-            </div>
+            <div class="custom-insertion">
+        <p>👋 Custom footer content appears in the middle of the footer</p>
+    </div>
             
-        </section>
-        
-
-        
-        <section class="section content">
-            <p>Here comes about text content.</p>
-
-        </section>
-        
+            <nav class="site-nav">
+                <a href="./">Home</a>
+                <a href="./about/">About</a>
+            </nav>
+        </footer>
     </div>
 </body>
-
 </html>

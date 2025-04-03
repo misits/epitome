@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /
+
+# If the request is not for a file or directory that exists
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirect clean URLs to the corresponding index.html file
+RewriteRule ^([^/]+)/?$ $1/index.html [L]
+
+# Redirect the root URL to index.html if needed
+RewriteRule ^$ index.html [L] 
