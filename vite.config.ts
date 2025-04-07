@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { handleDirectoryUrls } from './plugins/handleDirectoryUrls';
 
 export default defineConfig({
   // Base public path - can be changed for deployment to subdirectories
@@ -41,5 +42,15 @@ export default defineConfig({
     watch: {
       usePolling: false,
     },
+    // Handle paths with or without trailing slashes
+    middlewareMode: false,
+    fs: {
+      strict: true,
+    }
   },
+
+  // Use external plugins
+  plugins: [
+    handleDirectoryUrls()
+  ]
 });

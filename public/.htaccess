@@ -5,8 +5,22 @@ RewriteBase /
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
-# Redirect clean URLs to the corresponding index.html file
-RewriteRule ^([^/]+)/?$ $1/index.html [L]
+# First, try to handle HTML extension access
+# Check if we're accessing an HTML file directly
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}.html -f
+# Rewrite /page to /page.html
+RewriteRule ^([^/]+)$ $1.html [L]
+
+# Handle directory access without trailing slash
+# If it's a request for a directory name without trailing slash and the directory exists
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI} -d
+# Rewrite /directoryname to /directoryname/index.html
+RewriteRule ^(.+)$ $1/index.html [L]
+
+# Then handle directory-style clean URLs with trailing slash
+# This will direct /path/ to /path/index.html
+RewriteRule ^(.+)/$ $1/index.html [L]
 
 # Redirect the root URL to index.html if needed
 RewriteRule ^$ index.html [L] 

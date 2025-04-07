@@ -230,8 +230,25 @@ RewriteBase /
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
-# Redirect clean URLs to the corresponding index.html file
-RewriteRule ^([^/]+)/?$ $1/index.html [L]
+# First, try to handle HTML extension access
+# Check if we're accessing an HTML file directly
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI}.html -f
+# Rewrite /page to /page.html
+RewriteRule ^([^/]+)$ $1.html [L]
+
+# Handle directory access without trailing slash
+# If it's a request for a directory name without trailing slash and the directory exists
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI} -d
+# Rewrite /directoryname to /directoryname/index.html
+RewriteRule ^(.+)$ $1/index.html [L]
+
+# Then handle directory-style clean URLs with trailing slash
+# This will direct /path/ to /path/index.html
+RewriteRule ^(.+)/$ $1/index.html [L]
+
+# Redirect the root URL to index.html if needed
+RewriteRule ^$ index.html [L] 
 ```
 
 #### Nginx Server
@@ -243,61 +260,6 @@ location / {
     try_files $uri $uri/ $uri/index.html =404;
 }
 ```
-
-#### Static Hosting Services
-
-For services like Netlify, Vercel, or GitHub Pages, refer to their documentation on configuring clean URLs/rewrites.
-
-#### GitHub Pages
-
-GitHub Pages has built-in support for clean URLs. To deploy your Epitome site to GitHub Pages:
-
-1. Create a `.nojekyll` file in your output directory (public) to disable Jekyll processing:
-   ```bash
-   touch public/.nojekyll
-   ```
-
-2. Configure your repository settings:
-   - Go to your repository on GitHub
-   - Navigate to Settings > Pages
-   - Under "Source", select "GitHub Actions"
-   - Create a simple GitHub Actions workflow file in your project:
-
-Create a file named `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build site
-        run: npm run build
-        
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: public
-          clean: true
-```
-
-This workflow will automatically build and deploy your site to GitHub Pages whenever you push changes to the main branch.
 
 ### Asset Path Handling with Clean URLs
 
