@@ -51,11 +51,7 @@ function initializeExamples() {
     console.log('Loaded user preferences:', savedPreferences);
   } else {
     // Set default preferences if none exist
-    storage.set('userPreferences', {
-      theme: 'light',
-      fontSize: 'medium',
-      notifications: true
-    });
+    storage.set('userPreferences', {});
   }
 }
 

@@ -16,6 +16,9 @@ const isSpecificFilesMode = process.argv.includes('--specific') || process.argv.
 // Check if CSS minification should be disabled
 const disableMinify = process.argv.includes('--no-minify');
 
+// Check if JS minification should be disabled
+const disableJsMinify = process.argv.includes('--no-js-minify');
+
 try {
   // Create generator with default paths
   const generator = new Generator({
@@ -24,7 +27,9 @@ try {
     mdDir: './src/md',
     templatesDir: './src/templates',
     scssDir: './src/scss',
-    minifyCss: !disableMinify
+    jsDir: './src/js',
+    minifyCss: !disableMinify,
+    minifyJs: !disableJsMinify
   });
   
   if (isWatchMode) {

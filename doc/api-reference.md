@@ -21,7 +21,10 @@ constructor(options: GeneratorOptions = {})
   - `mdDir` (string, optional): Directory for markdown files (default: './md')
   - `templatesDir` (string, optional): Directory for templates (default: './src/templates')
   - `scssDir` (string, optional): Directory for SCSS files (default: './src/scss')
+  - `jsDir` (string, optional): Directory for JavaScript files (default: './src/js')
   - `debug` (boolean, optional): Enable debug mode (default: false)
+  - `minifyCss` (boolean, optional): Enable CSS minification (default: true)
+  - `minifyJs` (boolean, optional): Enable JavaScript minification (default: true)
 
 **Example:**
 
@@ -33,7 +36,10 @@ const generator = new Generator({
   mdDir: './content',
   templatesDir: './templates',
   scssDir: './styles',
-  debug: true
+  jsDir: './scripts',
+  debug: true,
+  minifyCss: true,
+  minifyJs: true
 });
 ```
 
@@ -191,32 +197,162 @@ templateEngine.registerHelper('formatDate', (date, format) => {
 
 ### AssetProcessor
 
-The `AssetProcessor` class handles asset processing, particularly SCSS compilation.
+The `AssetProcessor` class handles asset processing, particularly SCSS compilation and JavaScript bundling.
 
 #### Constructor
 
 ```typescript
-constructor(logger: Logger)
+constructor(logger: Logger, cssOutputDir?: string, jsOutputDir?: string)
 ```
 
 **Parameters:**
 
 - `logger` (Logger): Logger instance for debugging
+- `cssOutputDir` (string, optional): Custom output directory for CSS assets (default: 'public/assets/css')
+- `jsOutputDir` (string, optional): Custom output directory for JavaScript assets (default: 'public/assets/js')
 
 #### Methods
 
 ##### compileSass
 
 ```typescript
-compileSass(sassFilePath: string, outputCssPath: string): void
+compileSass(options: SassCompileOptions): void;
+compileSass(sassFilePath: string, outputName: string, minify?: boolean): void;
 ```
 
-Compiles SCSS to CSS.
+Compiles SCSS to CSS and places the output in the configured assets directory.
+
+**Parameters (object form):**
+
+- `options`: A configuration object with the following properties:
+  - `sassFilePath` (string): Path to the SCSS file
+  - `outputName` (string): Name for the output CSS file (with or without .css extension)
+  - `minify` (boolean, optional): Whether to minify the CSS output (default: true)
+  - `extractComponents` (boolean, optional): Whether to extract component styles to separate files (default: false)
+
+**Parameters (direct form):**
+
+- `sassFilePath` (string): Path to the SCSS file
+- `outputName` (string): Name for the output CSS file (with or without .css extension)
+- `minify` (boolean, optional): Whether to minify the CSS output (default: true)
+
+**Component Extraction:**
+
+When `extractComponents` is enabled, the processor will look for SCSS files in a 'components' subdirectory and compile them to separate CSS files. This helps reduce the main CSS file size and allows for more efficient loading.
+
+##### extractComponentStyles
+
+```typescript
+extractComponentStyles(mainSassPath: string, minify?: boolean): void
+```
+
+Extracts component styles from a components directory into separate CSS files.
 
 **Parameters:**
 
-- `sassFilePath` (string): Path to the SCSS file
-- `outputCssPath` (string): Path to output the compiled CSS
+- `mainSassPath` (string): The path to the main SCSS file, used to locate the components directory
+- `minify` (boolean, optional): Whether to minify the output CSS (default: true)
+
+##### bundleJs
+
+```typescript
+bundleJs(options: JsBundleOptions): void;
+bundleJs(entryPoint: string, outputName?: string, minify?: boolean): void;
+```
+
+Bundles JavaScript files starting from an entry point. Only files that are imported in the entry point will be included in the bundle.
+
+**Parameters (object form):**
+
+- `options`: A configuration object with the following properties:
+  - `entryPoint` (string): Path to the main JavaScript entry point file
+  - `outputName` (string, optional): Name for the output bundle (default: 'main')
+  - `minify` (boolean, optional): Whether to minify the JavaScript output (default: true)
+  - `splitting` (boolean, optional): Whether to enable code splitting (default: false)
+  - `formats` (string[], optional): Output formats to generate (['esm'], 'cjs', or 'iife')
+
+**Parameters (direct form):**
+
+- `entryPoint` (string): Path to the main JavaScript entry point file
+- `outputName` (string, optional): Name for the output bundle (default: 'main')
+- `minify` (boolean, optional): Whether to minify the JavaScript output (default: true)
+
+**Code Splitting:**
+
+When `splitting` is enabled, the bundler will automatically split the output into multiple chunks based on dynamic imports. This results in smaller initial loads and better performance for larger applications.
+
+##### compileJs
+
+```typescript
+compileJs(jsFilePath: string, outputName: string, minify: boolean = true): void
+```
+
+Compiles a single JavaScript file without bundling dependencies.
+
+**Parameters:**
+
+- `jsFilePath` (string): Path to the JavaScript file
+- `outputName` (string): Name for the output JavaScript file
+- `minify` (boolean, optional): Whether to minify the JavaScript output (default: true)
+
+##### resolveCssOutputPath
+
+```typescript
+resolveCssOutputPath(outputName: string): string
+```
+
+Resolves the output path for a CSS file.
+
+**Parameters:**
+
+- `outputName` (string): The name of the output file (with or without .css extension)
+
+**Returns:**
+
+- Full path to the output CSS file
+
+##### resolveJsOutputPath
+
+```typescript
+resolveJsOutputPath(outputName: string): string
+```
+
+Resolves the output path for a JavaScript file.
+
+**Parameters:**
+
+- `outputName` (string): The name of the output file (with or without .js extension)
+
+**Returns:**
+
+- Full path to the output JS file
+
+### SassCompileOptions
+
+```typescript
+interface SassCompileOptions {
+  sassFilePath: string;
+  outputName: string;
+  minify?: boolean;
+  extractComponents?: boolean;
+}
+```
+
+Configuration options for SCSS compilation.
+
+### JsBundleOptions
+
+```typescript
+interface JsBundleOptions {
+  entryPoint: string;
+  outputName?: string;
+  minify?: boolean;
+  splitting?: boolean;
+  formats?: ('esm' | 'cjs' | 'iife')[];
+}
+```
+
+Configuration options for JavaScript bundling.
 
 ### Logger
 
@@ -333,7 +469,10 @@ interface GeneratorOptions {
   mdDir?: string;
   templatesDir?: string;
   scssDir?: string;
+  jsDir?: string;
   debug?: boolean;
+  minifyCss?: boolean;
+  minifyJs?: boolean;
 }
 ```
 
@@ -347,7 +486,10 @@ interface ResolvedGeneratorOptions {
   mdDir: string;
   templatesDir: string;
   scssDir: string;
+  jsDir: string;
   debug: boolean;
+  minifyCss: boolean;
+  minifyJs: boolean;
 }
 ```
 
@@ -384,8 +526,11 @@ Options:
   --md-dir <dir>            Markdown files directory (default: ./md)
   --templates-dir <dir>     Templates directory (default: ./src/templates)
   --scss-dir <dir>          SCSS directory (default: ./src/scss)
+  --js-dir <dir>            JavaScript directory (default: ./src/js)
   --debug, -d               Enable debug output
   --debug-level <level>     Enable specific debug level(s), comma separated
+  --no-minify               Disable CSS minification
+  --no-js-minify            Disable JavaScript minification
   --help, -h                Show this help
 ```
 

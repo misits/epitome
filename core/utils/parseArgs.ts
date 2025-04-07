@@ -7,10 +7,13 @@ export interface ParsedArgs {
   mdDir?: string;
   templatesDir?: string;
   scssDir?: string;
+  jsDir?: string;
   debug?: boolean;
   debugLevels?: string[];
   help?: boolean;
   dev?: boolean;
+  minifyCss?: boolean;
+  minifyJs?: boolean;
 }
 
 /**
@@ -34,6 +37,8 @@ export function parseArgs(args: string[]): ParsedArgs {
       options.templatesDir = args[++i];
     } else if (arg === '--scss-dir') {
       options.scssDir = args[++i];
+    } else if (arg === '--js-dir') {
+      options.jsDir = args[++i];
     } else if (arg === '--debug' || arg === '-d') {
       options.debug = true;
     } else if (arg === '--debug-level') {
@@ -42,6 +47,10 @@ export function parseArgs(args: string[]): ParsedArgs {
       options.help = true;
     } else if (arg === '--dev') {
       options.dev = true;
+    } else if (arg === '--no-minify') {
+      options.minifyCss = false;
+    } else if (arg === '--no-js-minify') {
+      options.minifyJs = false;
     }
   }
   

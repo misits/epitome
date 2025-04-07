@@ -16,8 +16,11 @@ import { spawn } from 'child_process';
  *  --md-dir <dir>           Markdown files directory (default: ./src/md)
  *  --templates-dir <dir>    Templates directory (default: ./src/templates)
  *  --scss-dir <dir>         SCSS directory (default: ./src/scss)
+ *  --js-dir <dir>           JavaScript directory (default: ./src/js)
  *  --debug, -d              Enable debug output
  *  --debug-level <level>    Enable specific debug level(s), comma separated
+ *  --no-minify              Disable CSS minification
+ *  --no-js-minify           Disable JavaScript minification
  *  --dev                    Start development server with live reload
  *  --help, -h               Show this help
  */
@@ -39,8 +42,11 @@ Options:
   --md-dir <dir>            Markdown files directory (default: ./src/md)
   --templates-dir <dir>     Templates directory (default: ./src/templates)
   --scss-dir <dir>          SCSS directory (default: ./src/scss)
+  --js-dir <dir>            JavaScript directory (default: ./src/js)
   --debug, -d               Enable debug output
   --debug-level <level>     Enable specific debug level(s), comma separated (e.g. template,data,parse)
+  --no-minify               Disable CSS minification
+  --no-js-minify            Disable JavaScript minification
   --dev                     Start development server with live reload
   --help, -h                Show this help
   `);
@@ -87,13 +93,20 @@ if (args.includes('--dev')) {
 } else {
   // Run the build
   try {
+    // Check for minification flags
+    const minifyCss = !args.includes('--no-minify');
+    const minifyJs = !args.includes('--no-js-minify');
+    
     // Create generator with options
     const generator = new Generator({
       outputDir: options.outputDir,
       mdDir: options.mdDir,
       templatesDir: options.templatesDir,
       scssDir: options.scssDir,
-      debug: options.debug
+      jsDir: options.jsDir,
+      debug: options.debug,
+      minifyCss: minifyCss,
+      minifyJs: minifyJs
     });
     
     // Enable specific debug levels if provided - BUT only if Generator has this method

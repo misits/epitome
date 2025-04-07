@@ -10,7 +10,7 @@ import { createServer } from 'vite';
 
 /**
  * Development server for Epito.me
- * Watches for changes in markdown, templates, and SCSS files
+ * Watches for changes in markdown, templates, SCSS files, and JavaScript files
  * Runs the generator when changes are detected
  * Serves the output directory with Vite for fast reloading
  */
@@ -30,6 +30,11 @@ const outputDir = path.resolve(cwd, options.outputDir || './public');
 const mdDir = path.resolve(cwd, options.mdDir || './src/md');
 const templatesDir = path.resolve(cwd, options.templatesDir || './src/templates');
 const scssDir = path.resolve(cwd, options.scssDir || './src/scss');
+const jsDir = path.resolve(cwd, options.jsDir || './src/js');
+
+// Check for minification flags
+const minifyCss = !process.argv.includes('--no-minify');
+const minifyJs = !process.argv.includes('--no-js-minify');
 
 // Create the generator with debug enabled
 const generator = new Generator({
@@ -37,7 +42,10 @@ const generator = new Generator({
   mdDir: options.mdDir,
   templatesDir: options.templatesDir,
   scssDir: options.scssDir,
-  debug: true
+  jsDir: options.jsDir,
+  debug: true,
+  minifyCss,
+  minifyJs
 });
 
 // Function to ensure the output directory exists
@@ -86,6 +94,17 @@ function buildAllSites(): void {
   }
 }
 
+// Function to process JavaScript without rebuilding the entire site
+function processJavaScript(): void {
+  try {
+    console.log('Processing JavaScript files...');
+    generator['processJavaScript']();
+    console.log('✅ JavaScript processing completed');
+  } catch (error) {
+    console.error('❌ JavaScript processing failed:', error);
+  }
+}
+
 // Initial build - build all files by default, or just one if in single file mode
 if (singleFileMode) {
   console.log('🔍 Single file mode: building only the specified or default page');
@@ -100,6 +119,7 @@ console.log('👀 Watching for file changes...');
 console.log(`  - Markdown: ${mdDir}`);
 console.log(`  - Templates: ${templatesDir}`);
 console.log(`  - SCSS: ${scssDir}`);
+console.log(`  - JavaScript: ${jsDir}`);
 
 // Start Vite dev server
 async function startDevServer() {
@@ -116,7 +136,8 @@ async function startDevServer() {
         ignored: [
           path.join(mdDir, '**/*.md'),
           path.join(templatesDir, '**/*.html'),
-          path.join(scssDir, '**/*.scss')
+          path.join(scssDir, '**/*.scss'),
+          path.join(jsDir, '**/*.js')
         ],
       }
     }
@@ -129,7 +150,8 @@ async function startDevServer() {
   const watcher = chokidar.watch([
     path.join(mdDir, '**/*.md'),
     path.join(templatesDir, '**/*.html'),
-    path.join(scssDir, '**/*.scss')
+    path.join(scssDir, '**/*.scss'),
+    path.join(jsDir, '**/*.js')
   ], {
     ignoreInitial: true,
     awaitWriteFinish: {
@@ -162,6 +184,9 @@ async function startDevServer() {
         // In build all mode, rebuild all files
         buildAllSites();
       }
+    } else if (filePath.endsWith('.js')) {
+      // For JavaScript changes, only process the JavaScript files
+      processJavaScript();
     }
     
     // Reload browser using Vite's HMR API
@@ -211,6 +236,18 @@ async function startDevServer() {
             path: '*'
           });
         }
+      }
+    } else if (filePath.endsWith('.js')) {
+      // For JavaScript file deletions, reprocess JavaScript
+      console.log(`JavaScript file deleted: ${filePath}`);
+      processJavaScript();
+      
+      // Reload browser
+      if (server.ws) {
+        server.ws.send({
+          type: 'full-reload',
+          path: '*'
+        });
       }
     }
   });

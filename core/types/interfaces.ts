@@ -15,8 +15,10 @@ export interface GeneratorOptions {
   mdDir?: string;
   templatesDir?: string;
   scssDir?: string;
+  jsDir?: string;
   debug?: boolean;
   minifyCss?: boolean;
+  minifyJs?: boolean;
 }
 
 // Ensure all options have defaults
@@ -25,8 +27,10 @@ export interface ResolvedGeneratorOptions {
   mdDir: string;
   templatesDir: string;
   scssDir: string;
+  jsDir: string;
   debug: boolean;
   minifyCss: boolean;
+  minifyJs: boolean;
 }
 
 export interface TemplateEngine {

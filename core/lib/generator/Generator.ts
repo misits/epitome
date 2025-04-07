@@ -23,8 +23,10 @@ export class Generator {
       mdDir: options.mdDir ?? './src/md',
       templatesDir: options.templatesDir ?? './src/templates',
       scssDir: options.scssDir ?? './src/scss',
+      jsDir: options.jsDir ?? './src/js',
       debug: options.debug ?? false,
-      minifyCss: options.minifyCss ?? true
+      minifyCss: options.minifyCss ?? true,
+      minifyJs: options.minifyJs ?? true
     };
     
     // Initialize logger
@@ -119,13 +121,67 @@ export class Generator {
       // 7. Compile SCSS to CSS
       this.logger.info('Step 7: Compiling SCSS to CSS...');
       const sassFilePath = path.join(process.cwd(), this.options.scssDir, `${theme}.scss`);
-      const outputCssPath = path.join(process.cwd(), this.options.outputDir, 'style.css');
-      this.assetProcessor.compileSass(sassFilePath, outputCssPath, this.options.minifyCss);
+      this.assetProcessor.compileSass({
+        sassFilePath,
+        outputName: 'style',
+        minify: this.options.minifyCss,
+        extractComponents: true // Extract component-specific CSS files
+      });
+      
+      // 8. Process JavaScript files
+      this.logger.info('Step 8: Processing JavaScript files...');
+      this.processJavaScript();
       
       this.logger.success('Build completed successfully!');
     } catch (error) {
       this.logger.error('Build failed:', error);
       throw error;
+    }
+  }
+  
+  /**
+   * Process JavaScript files from the jsDir
+   */
+  private processJavaScript(): void {
+    const jsDir = path.join(process.cwd(), this.options.jsDir);
+    
+    // Check if JS directory exists
+    if (!fs.existsSync(jsDir)) {
+      this.logger.info(`JavaScript directory not found: ${jsDir}, skipping JS processing`);
+      return;
+    }
+    
+    // Check for main.js or index.js as entry point
+    const mainJsPath = path.join(jsDir, 'main.js');
+    const indexJsPath = path.join(jsDir, 'index.js');
+    
+    if (fs.existsSync(mainJsPath)) {
+      this.logger.info('Found main.js as entry point');
+      
+      // Bundle with code splitting for better performance
+      this.assetProcessor.bundleJs({
+        entryPoint: mainJsPath,
+        outputName: 'main',
+        minify: this.options.minifyJs,
+        splitting: true, // Enable code splitting
+        formats: ['esm'] // Modern module format
+      });
+      
+    } else if (fs.existsSync(indexJsPath)) {
+      this.logger.info('Found index.js as entry point');
+      
+      // Bundle with code splitting for better performance
+      this.assetProcessor.bundleJs({
+        entryPoint: indexJsPath,
+        outputName: 'main',
+        minify: this.options.minifyJs,
+        splitting: true, // Enable code splitting
+        formats: ['esm'] // Modern module format
+      });
+      
+    } else {
+      this.logger.info('No main entry point (main.js or index.js) found. Skipping JavaScript processing.');
+      this.logger.info('To process JavaScript, create a main.js or index.js file that imports the files you want to include.');
     }
   }
   
@@ -194,11 +250,13 @@ export class Generator {
         const mdDir = path.join(process.cwd(), this.options.mdDir);
         const templatesDir = path.join(process.cwd(), this.options.templatesDir);
         const scssDir = path.join(process.cwd(), this.options.scssDir);
+        const jsDir = path.join(process.cwd(), this.options.jsDir);
         
         this.logger.info('Watching for file changes...');
         this.logger.info(`  - Markdown: ${mdDir}`);
         this.logger.info(`  - Templates: ${templatesDir}`);
         this.logger.info(`  - SCSS: ${scssDir}`);
+        this.logger.info(`  - JavaScript: ${jsDir}`);
         
         // Watch md files
         chokidar.watch(`${mdDir}/**/*.md`).on('change', (filePath: string) => {
@@ -227,11 +285,62 @@ export class Generator {
           const themeFilename = filePath.split('/').pop() || '';
           const theme = themeFilename.replace('.scss', '');
           
-          // Get the output path
-          const outputCssPath = path.join(process.cwd(), this.options.outputDir, 'style.css');
+          // Determine if this is a component file
+          const isComponentFile = filePath.includes('/components/');
           
-          // Compile SCSS
-          this.assetProcessor.compileSass(filePath, outputCssPath, this.options.minifyCss);
+          if (isComponentFile) {
+            // If it's a component file, just compile that component
+            this.assetProcessor.compileSass({
+              sassFilePath: filePath,
+              outputName: theme,
+              minify: this.options.minifyCss,
+              extractComponents: false
+            });
+          } else {
+            // For main theme files, compile with component extraction
+            this.assetProcessor.compileSass({
+              sassFilePath: filePath,
+              outputName: 'style',
+              minify: this.options.minifyCss,
+              extractComponents: true
+            });
+          }
+        });
+        
+        // Watch JS files
+        chokidar.watch(`${jsDir}/**/*.js`).on('change', (filePath: string) => {
+          this.logger.info(`JavaScript file changed: ${filePath}`);
+          
+          // When any JS file changes, reprocess the main entry point
+          // This ensures that changes to imported files are picked up
+          const mainJsPath = path.join(jsDir, 'main.js');
+          const indexJsPath = path.join(jsDir, 'index.js');
+          
+          if (fs.existsSync(mainJsPath)) {
+            this.logger.info('Rebuilding from main.js entry point');
+            
+            this.assetProcessor.bundleJs({
+              entryPoint: mainJsPath,
+              outputName: 'main',
+              minify: this.options.minifyJs,
+              splitting: true,
+              formats: ['esm']
+            });
+            
+          } else if (fs.existsSync(indexJsPath)) {
+            this.logger.info('Rebuilding from index.js entry point');
+            
+            this.assetProcessor.bundleJs({
+              entryPoint: indexJsPath,
+              outputName: 'main',
+              minify: this.options.minifyJs,
+              splitting: true,
+              formats: ['esm']
+            });
+            
+          } else {
+            this.logger.info('No main entry point found. Skipping JavaScript processing.');
+          }
         });
         
         this.logger.success('Watching for changes. Press Ctrl+C to stop.');
