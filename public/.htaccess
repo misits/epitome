@@ -23,4 +23,68 @@ RewriteRule ^(.+)$ $1/index.html [L]
 RewriteRule ^(.+)/$ $1/index.html [L]
 
 # Redirect the root URL to index.html if needed
-RewriteRule ^$ index.html [L] 
+RewriteRule ^$ index.html [L]
+
+# Enable GZIP compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json
+</IfModule>
+
+# Caching Rules
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Default expiry: 1 hour
+  ExpiresDefault "access plus 1 hour"
+
+  # HTML documents
+  ExpiresByType text/html "access plus 1 hour"
+  
+  # CSS and JavaScript
+  ExpiresByType text/css "access plus 1 week"
+  ExpiresByType application/javascript "access plus 1 week"
+  ExpiresByType text/javascript "access plus 1 week"
+
+  # Images
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/gif "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  
+  # Fonts
+  ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  
+  # Icons
+  ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
+
+# Add ETags
+FileETag MTime Size
+
+# Set Cache-Control headers
+<IfModule mod_headers.c>
+  # 1 HOUR for HTML
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "max-age=3600, public"
+  </FilesMatch>
+  
+  # 1 WEEK for CSS and JS
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "max-age=604800, public"
+  </FilesMatch>
+  
+  # 1 MONTH for images
+  <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp)$">
+    Header set Cache-Control "max-age=2592000, public"
+  </FilesMatch>
+  
+  # 1 YEAR for fonts and icons
+  <FilesMatch "\.(ico|ttf|otf|woff|woff2|eot)$">
+    Header set Cache-Control "max-age=31536000, public"
+  </FilesMatch>
+</IfModule> 
