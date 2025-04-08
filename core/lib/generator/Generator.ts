@@ -26,7 +26,12 @@ export class Generator {
       jsDir: options.jsDir ?? './src/js',
       debug: options.debug ?? false,
       minifyCss: options.minifyCss ?? true,
-      minifyJs: options.minifyJs ?? true
+      minifyJs: options.minifyJs ?? true,
+      extractComponents: options.extractComponents ?? true,
+      extractCritical: options.extractCritical ?? false,
+      moduleSplit: options.moduleSplit ?? false,
+      purgeCss: options.purgeCss ?? false,
+      mediaQueryGrouping: options.mediaQueryGrouping ?? false
     };
     
     // Initialize logger
@@ -105,7 +110,8 @@ export class Generator {
         ...data,
         content: htmlContent,
         page_depth: pageDepth,
-        current_page: mdFilename.replace('.md', '')
+        current_page: mdFilename.replace('.md', ''),
+        theme: theme // Explicitly add theme to the context
       };
       
       // 5. Process the template with the context
@@ -118,14 +124,32 @@ export class Generator {
       fs.writeFileSync(outputHtmlPath, processedHtml);
       this.logger.info(`HTML written to: ${outputHtmlPath}`);
       
-      // 7. Compile SCSS to CSS
-      this.logger.info('Step 7: Compiling SCSS to CSS...');
+      // 7. Compile SCSS to CSS with enhanced options
+      this.logger.info('Step 7: Compiling SCSS to CSS with enhanced splitting...');
       const sassFilePath = path.join(process.cwd(), this.options.scssDir, `${theme}.scss`);
+      
+      // Calculate purge CSS content paths if enabled
+      let purgeCssContentPaths: string[] | undefined;
+      if (this.options.purgeCss) {
+        // Include HTML output and template files for PurgeCSS analysis
+        purgeCssContentPaths = [
+          outputHtmlPath,
+          path.join(process.cwd(), this.options.templatesDir, '**/*.html')
+        ];
+        this.logger.info('PurgeCSS enabled with content paths for unused CSS removal');
+      }
+      
+      // Compile SASS with all selected options - use theme name as output name
       this.assetProcessor.compileSass({
         sassFilePath,
-        outputName: 'style',
+        outputName: theme, // Use theme name for the output CSS file
         minify: this.options.minifyCss,
-        extractComponents: true // Extract component-specific CSS files
+        extractComponents: this.options.extractComponents,
+        extractCritical: this.options.extractCritical,
+        moduleSplit: this.options.moduleSplit,
+        purgeCss: this.options.purgeCss,
+        purgeCssContentPaths,
+        mediaQueryGrouping: this.options.mediaQueryGrouping
       });
       
       // 8. Process JavaScript files
@@ -281,30 +305,9 @@ export class Generator {
         chokidar.watch(`${scssDir}/**/*.scss`).on('change', (filePath: string) => {
           this.logger.info(`SCSS file changed: ${filePath}`);
           
-          // For SCSS, we only need to recompile the main theme files
-          const themeFilename = filePath.split('/').pop() || '';
-          const theme = themeFilename.replace('.scss', '');
-          
-          // Determine if this is a component file
-          const isComponentFile = filePath.includes('/components/');
-          
-          if (isComponentFile) {
-            // If it's a component file, just compile that component
-            this.assetProcessor.compileSass({
-              sassFilePath: filePath,
-              outputName: theme,
-              minify: this.options.minifyCss,
-              extractComponents: false
-            });
-          } else {
-            // For main theme files, compile with component extraction
-            this.assetProcessor.compileSass({
-              sassFilePath: filePath,
-              outputName: 'style',
-              minify: this.options.minifyCss,
-              extractComponents: true
-            });
-          }
+          // Rebuild all markdown files if any SCSS file changes
+          // This ensures that the theme-specific CSS is updated
+          this.buildAll();
         });
         
         // Watch JS files

@@ -64,6 +64,9 @@ export class EachProcessor {
           // Create a context for this item
           const itemContext = this.contextResolver.createItemContext(item, trimmedArrayPath, context);
           
+          // Add the index to the item context for access with {{@index}}, starting from 1 instead of 0
+          itemContext['@index'] = index + 1;
+          
           // Process the template with this context
           let processedItem = itemTemplate;
           
@@ -141,6 +144,18 @@ export class EachProcessor {
     result = result.replace(/{{{([^{}]*?)}}}/g, (_, variablePath) => {
       const value = this.contextResolver.resolvePath(context, variablePath.trim());
       return value !== undefined && value !== null ? String(value) : '';
+    });
+    
+    // Handle special variables with @ prefix
+    result = result.replace(/{{(@[^{}]*?)}}/g, (_, variablePath) => {
+      const path = variablePath.trim();
+      const value = context[path]; // Direct access for special variables
+      
+      if (value === undefined || value === null) {
+        return '';
+      }
+      
+      return String(value);
     });
     
     // Handle double-brace variables (with HTML escaping)

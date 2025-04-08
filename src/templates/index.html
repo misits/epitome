@@ -1,12 +1,15 @@
 <!-- This template extends the app.html layout -->
-{{@partial 'layouts/app'}}
+{{@partial 'index/layouts/app'}}
 
 {{@yield "head"}}
     <!-- Custom head content -->
+    <script type="text/javascript">
+        console.log('Hello from index.html');
+    </script>
 {{/yield}}
 
 {{@yield "content"}}
-    {{@partial 'layouts/hero'}}
+    {{@partial 'index/layouts/hero'}}
 
     <section class="wrapper container-2xl">
         {{{content}}}

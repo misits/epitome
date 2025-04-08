@@ -1,0 +1,57 @@
+<header class="header py-6" id="header">
+    <div id="header-container" class="flex items-center justify-between">
+        <div class="container-2xl grid grid-cols-2 sm:grid-cols-2">
+            <div class="header__logo flex items-center justify-start">
+                <a href="{{@urlPath '/'}}" class="mb-0 text-lowercase font-bold text-2xl">
+                    {{name}}.
+                </a>
+            </div>
+            <div class="header__nav flex items-center justify-end">
+                <a class="header__cta font-bold flex items-center justify-center px-6 py-2 pill hide-md"
+                    href="{{hero.cta.0.url}}">
+                    {{hero.cta.0.label}}
+                    <span class="header__cta-arrow flex items-center justify-center ml-2">
+                        {{@partial "portfolio/svg/arrow"}}
+                    </span>
+                </a>
+                <button class="header__nav-toggle flex items-center justify-center px-4 py-1 pill ml-4 relative z-50"
+                    onclick="document.getElementById('header').classList.toggle('active')">
+                    <span class="header__nav-toggle-line"></span>
+                    <span class="header__nav-toggle-line"></span>
+                    <span class="header__nav-toggle-line"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <nav class="header__nav-menu" id="header-nav-menu">
+        <div class="container-2xl">
+            <hr class="header__nav-divider" />
+            <ul class="header__nav-list my-6">
+                {{@each navigation}}
+                <li class="header__nav-item">
+                    <a href="{{url}}" class="header__nav-link text-6xl font-bold">
+                        {{label}}
+                        <span class="header__nav-link-index text-2xl font-normal">({{@index}})</span>
+                    </a>
+                </li>
+                {{/each}}
+            </ul>
+            <hr class="header__nav-divider" />
+            <div class="header__nav-socials mt-6">
+                <h2 class="header__nav-socials-title text-2xl font-semibold">{{socials.title}}</h2>
+                <ul class="header__nav-socials-list flex items-center gap-6">
+                    {{@each socials.items}}
+                    <li class="header__nav-socials-item">
+                        <a href="{{value}}" class="header__nav-socials-link font-semibold text-uppercase flex items-center justify-end">
+                            {{media}}
+                            <span class="header__nav-socials-icon flex items-center justify-end">
+                                {{@partial "portfolio/svg/arrow-top-right"}}
+                            </span>
+                        </a>
+                    </li>
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>

@@ -19,6 +19,12 @@ export interface GeneratorOptions {
   debug?: boolean;
   minifyCss?: boolean;
   minifyJs?: boolean;
+  // CSS splitting options
+  extractComponents?: boolean;
+  extractCritical?: boolean;
+  moduleSplit?: boolean;
+  purgeCss?: boolean;
+  mediaQueryGrouping?: boolean;
 }
 
 // Ensure all options have defaults
@@ -31,6 +37,12 @@ export interface ResolvedGeneratorOptions {
   debug: boolean;
   minifyCss: boolean;
   minifyJs: boolean;
+  // CSS splitting options
+  extractComponents: boolean;
+  extractCritical: boolean;
+  moduleSplit: boolean;
+  purgeCss: boolean;
+  mediaQueryGrouping: boolean;
 }
 
 export interface TemplateEngine {

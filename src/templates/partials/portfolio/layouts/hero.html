@@ -1,0 +1,34 @@
+<section class="hero">
+    <div class="container-2xl">
+        <div class="hero__content">
+            <h1 class="hero__title text-9xl font-bold">{{hero.title}}</h1>
+            <div class="hero__description">
+                <span class="hero__line"></span>
+                <p class="hero__description-text text-xl">{{hero.text}}</p>
+            </div>
+        </div>
+        <div class="hero__socials grid grid-cols-2 gap-4 my-24">
+            <ul class="hero__socials-list flex items-center gap-4">
+                {{@each socials.items}}
+                <li class="hero__socials-item">
+                    <a href="{{value}}" class="hero__socials-link font-semibold text-uppercase flex items-center">
+                        {{media}}
+                        <span class="hero__socials-icon flex items-center justify-end">
+                            {{@partial "portfolio/svg/arrow-top-right"}}
+                        </span>
+                    </a>
+                </li>
+                {{/each}}
+            </ul>
+            <div class="hero__cta-container flex items-center justify-end">
+                <a class="hero__cta font-bold flex items-center justify-center px-6 py-2 pill text-xl"
+                href="{{hero.cta.0.url}}">
+                {{hero.cta.0.label}}
+                <span class="hero__cta-arrow flex items-center justify-center ml-2 mt-1">
+                    {{@partial "portfolio/svg/arrow"}}
+                </span>
+            </a>
+            </div>
+        </div>
+    </div>
+</section>

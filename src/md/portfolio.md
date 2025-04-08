@@ -1,55 +1,63 @@
 ---
 theme: "portfolio"
-title: "Portfolio"
-name: "Epitome"
-summary: "Portfolio template demo with epitome."
+title: "Lorem Ipsum"
+name: "Lorem Ipsum"
+summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 
 # Headline
 hero:
-  title: I'm a visual designer with passion to create a great experiences
+  title: Lorem ipsum dolor sit amet, consectetur adipiscing elit
   text: |
-    I'm John, a Visual Designer living in Munich, and I focus on making digital experiences that are easy to use, enjoyable, and get the job done.
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
   cta: 
-    - label: "Let's talk"
+    - label: "Lorem Ipsum"
       url: "#contact"
+
+navigation:
+  - label: "Lorem"
+    url: "#about"
+  - label: "Ipsum"
+    url: "#projects"
 
 # Socials
 socials:
-  - media: instagram
-    value: "https://instagram.com"
-  - media: behance
-    value: "https://behance.com"
-  - media: dribble
-    value: "https://dribble.com"
+  title: "Lorem ipsum."
+  items:
+    - media: instagram
+      value: "https://instagram.com"
+    - media: behance
+      value: "https://behance.com"
+    - media: dribble
+      value: "https://dribble.com"
 
 # Contacts
 contacts:
   - label: "email"
-    value: "john@doe.com"
+    value: "lorem@ipsum.com"
   - label: "phone"
-    value: "+41 (0)78 843 54 38"
+    value: "+00 (0)00 000 00 00"
 
 # About section
 about:
-  title: Design that sparks engagement and inspires action
+  title: Lorem ipsum dolor sit amet, consectetur adipiscing elit
   image: ""
   text: | 
-    Concentrate on your primary objective which is expanding your business, and leave it to me to ensure that your business is efficiently portrayed in the digital realm and distinguishes itself from the rivals.
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
   cta: 
-    - label: "About me"
+    - label: "Lorem Ipsum"
       url: ""
 
 # Project section
 projects:
-  title: Discover my latest works
+  title: Lorem ipsum dolor sit amet
   cta: 
-    - label: "View All Works"
+    - label: "Lorem Ipsum"
       url: ""
   projects_list:
-    - project: Estatery
-      tags: ["UI/UX"]
-    - project: Wepay
-      tags: ["Branding"]
+    - project: Lorem
+      tags: ["Ipsum"]
+    - project: Dolor
+      tags: ["Sit Amet"]
 
 ---
 
