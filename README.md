@@ -92,6 +92,15 @@ phone: "+1 (123) 456-7890"
 email: "john@example.com"
 location: "San Francisco, CA"
 website: "https://example.com"
+
+# You can use nested objects for organizing related data
+hero:
+  title: "Welcome to my portfolio"
+  text: "I create beautiful and functional websites"
+  cta:
+    - label: "View Projects"
+      url: "#projects"
+
 education:
   - school: "University of Technology"
     faculty: "Computer Science"
@@ -117,6 +126,36 @@ work:
 
 I am a passionate software engineer with expertise in building web applications...
 ```
+
+### Accessing Nested Data in Templates
+
+You can access nested front matter data in your templates using dot notation:
+
+```html
+<!-- Accessing basic properties -->
+<h1>{{name}}</h1>
+<p>{{title}}</p>
+
+<!-- Accessing nested object properties -->
+<div class="hero">
+  <h2>{{hero.title}}</h2>
+  <p>{{hero.text}}</p>
+  
+  <!-- You can also access nested arrays -->
+  <a href="{{hero.cta.0.url}}" class="button">{{hero.cta.0.label}}</a>
+</div>
+
+<!-- Iterating over arrays -->
+{{@each education}}
+  <div class="education-item">
+    <h3>{{school}}</h3>
+    <p>{{degree}} in {{faculty}}</p>
+    <p>{{from}} - {{to}}</p>
+  </div>
+{{/each}}
+```
+
+This dot notation format works for any level of nesting in your front matter data.
 
 ## Customization
 

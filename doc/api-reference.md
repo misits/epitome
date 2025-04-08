@@ -716,4 +716,64 @@ class CustomGenerator extends Generator {
     // Implementation
   }
 }
+```
+
+### Nested Data Access
+
+Epitome supports dot notation for accessing nested properties in your frontmatter data:
+
+```
+{{object.property}}
+```
+
+For example, if your frontmatter contains:
+
+```yaml
+hero:
+  title: "Welcome to my site"
+  subtitle: "Learn more about what I do"
+```
+
+You can access these properties in your template with:
+
+```html
+<h1>{{hero.title}}</h1>
+<p>{{hero.subtitle}}</p>
+```
+
+##### Nested Arrays
+
+You can also access array items using dot notation with the index:
+
+```yaml
+links:
+  - text: "Home"
+    url: "/"
+  - text: "About"
+    url: "/about"
+```
+
+Access them in your template:
+
+```html
+<a href="{{links.0.url}}">{{links.0.text}}</a>
+<a href="{{links.1.url}}">{{links.1.text}}</a>
+```
+
+##### Deep Nesting
+
+There's no limit to how deep you can nest properties:
+
+```yaml
+site:
+  meta:
+    social:
+      twitter: "@username"
+      linkedin: "linkedin.com/in/username"
+```
+
+Access in templates:
+
+```html
+<meta name="twitter:site" content="{{site.meta.social.twitter}}">
 ``` 

@@ -95,7 +95,7 @@ export class VariableProcessor {
     });
     
     // Then, handle double-brace variables (with HTML escaping)
-    result = result.replace(/{{([^#/@][^{}]*?)}}/g, (_, variablePath) => {
+    result = result.replace(/{{([^#/@][^{}]*?)}}/g, (fullMatch, variablePath) => {
       const path = variablePath.trim();
       
       // Special case for {{this}}
@@ -118,10 +118,53 @@ export class VariableProcessor {
         return this.htmlUtils.escapeHtml(JSON.stringify(context.this));
       }
       
+      // Log the path being processed for debugging
+      this.logger.logLevel('data', `Processing variable: {{${path}}}`);
+      
       const value = this.contextResolver.resolvePath(context, path);
       
       if (value === undefined || value === null) {
+        // Enhanced logging for debugging nested paths
+        if (path.includes('.')) {
+          this.logger.logLevel('data', `Could not resolve nested path: ${path}`);
+          
+          // Log the parent object to help debugging
+          const parts = path.split('.');
+          const parentPath = parts[0];
+          const parent = this.contextResolver.resolvePath(context, parentPath);
+          
+          if (parent !== undefined && parent !== null) {
+            this.logger.logLevel('data', `Parent object '${parentPath}' exists:`);
+            
+            // For objects, log the keys to show what's available
+            if (typeof parent === 'object' && !Array.isArray(parent)) {
+              this.logger.logLevel('data', `Available keys: ${Object.keys(parent).join(', ')}`);
+              
+              // Check if the next level key exists
+              if (parts.length > 1 && parts[1] in parent) {
+                const secondLevel = parent[parts[1]];
+                this.logger.logLevel('data', `Second level '${parts[1]}' exists and is a ${typeof secondLevel}`);
+                
+                if (typeof secondLevel === 'object' && secondLevel !== null) {
+                  this.logger.logLevel('data', `Keys in second level: ${Object.keys(secondLevel).join(', ')}`);
+                }
+              } else if (parts.length > 1) {
+                this.logger.logLevel('data', `Second level key '${parts[1]}' does not exist in parent object`);
+              }
+            } else if (Array.isArray(parent)) {
+              this.logger.logLevel('data', `Parent is an array with ${parent.length} items`);
+            } else {
+              this.logger.logLevel('data', `Parent is a ${typeof parent} with value: ${parent}`);
+            }
+          } else {
+            this.logger.logLevel('data', `Parent object '${parentPath}' does not exist`);
+          }
+        } else {
+          this.logger.logLevel('data', `Variable not found: ${path}`);
+        }
         return '';
+      } else {
+        this.logger.logLevel('data', `Successfully resolved variable {{${path}}}`);
       }
       
       // If the value is an array with a single item, unwrap it

@@ -45,6 +45,62 @@ export class ContextResolver {
       return context.this;
     }
     
+    // If it's a dot notation path, we need to traverse the object
+    if (path.includes('.')) {
+      const parts = path.split('.');
+      const firstPart = parts[0];
+      
+      // Try to find the root object in different contexts
+      let rootObject = null;
+      
+      // First check in currentItemContext
+      if (this.currentItemContext && typeof this.currentItemContext === 'object' && firstPart in this.currentItemContext) {
+        rootObject = this.currentItemContext[firstPart];
+      }
+      // Then check in direct context
+      else if (firstPart in context) {
+        rootObject = context[firstPart];
+      }
+      // Then check in context.this
+      else if (context.this && typeof context.this === 'object' && firstPart in context.this) {
+        rootObject = context.this[firstPart];
+      }
+      
+      // If we found the root object, traverse the path
+      if (rootObject !== null && rootObject !== undefined) {
+        // Follow the path through the nested structure
+        let current = rootObject;
+        
+        // Start from the second part since we already have the first part
+        for (let i = 1; i < parts.length; i++) {
+          if (current === null || current === undefined) {
+            this.logger.logLevel('data', `Path traversal failed at ${parts.slice(0, i).join('.')}`);
+            return undefined;
+          }
+          
+          if (typeof current !== 'object') {
+            this.logger.logLevel('data', `Cannot traverse ${parts[i]} in ${parts.slice(0, i).join('.')} because it's not an object`);
+            return undefined;
+          }
+          
+          if (!(parts[i] in current)) {
+            this.logger.logLevel('data', `Property ${parts[i]} not found in ${parts.slice(0, i).join('.')}`);
+            return undefined;
+          }
+          
+          current = current[parts[i]];
+        }
+        
+        return current;
+      }
+      
+      // We couldn't find the root object, log it and return undefined
+      this.logger.logLevel('data', `Root object ${firstPart} not found for path ${path}`);
+      return undefined;
+    }
+    
+    // Non-dot notation path - direct lookups
+    
     // Look in the current item context first (for nested contexts)
     if (this.currentItemContext && typeof this.currentItemContext === 'object') {
       if (path in this.currentItemContext) {
@@ -62,29 +118,40 @@ export class ContextResolver {
       return context.this[path];
     }
     
-    // Handle dot notation paths
-    const parts = path.split('.');
-    let current: any = context;
-    
-    for (const part of parts) {
-      if (current === null || current === undefined) {
-        return undefined;
-      }
-      
-      if (!(part in current)) {
-        return undefined;
-      }
-      
-      current = current[part];
-    }
-    
-    return current;
+    this.logger.logLevel('data', `Could not resolve path: ${path}`);
+    return undefined;
   }
 
   /**
    * Get an array from the context by path
    */
   getArray(context: TemplateContext, arrayPath: string): any[] {
+    // If it's a dot notation path, first resolve to the potential array
+    if (arrayPath.includes('.')) {
+      const resolvedValue = this.resolvePath(context, arrayPath);
+      
+      if (Array.isArray(resolvedValue)) {
+        this.logger.logLevel('data', `Found array at path ${arrayPath}`);
+        return resolvedValue;
+      }
+      
+      // If it's not an array but an object, handle edge cases
+      if (resolvedValue !== null && typeof resolvedValue === 'object' && !Array.isArray(resolvedValue)) {
+        // Check if it's an object containing an array with the same name as the last part of the path
+        const parts = arrayPath.split('.');
+        const lastPart = parts[parts.length - 1];
+        
+        if (lastPart in resolvedValue && Array.isArray(resolvedValue[lastPart])) {
+          this.logger.logLevel('data', `Found nested array at ${arrayPath}.${lastPart}`);
+          return resolvedValue[lastPart];
+        }
+        
+        // Convert object to array with one item if it's not found otherwise
+        this.logger.logLevel('data', `Converting object at ${arrayPath} to singleton array`);
+        return [resolvedValue];
+      }
+    }
+    
     // CRITICAL: For nested arrays, look in the current item context first
     if (this.currentItemContext && typeof this.currentItemContext === 'object') {
       if (arrayPath in this.currentItemContext) {
@@ -113,23 +180,6 @@ export class ContextResolver {
           this.logger.logLevel('data', `Found ${arrayPath} in context.this`);
           return value;
         }
-      }
-    }
-    
-    // Try dot notation paths
-    if (arrayPath.includes('.')) {
-      const parts = arrayPath.split('.');
-      let current: any = context;
-      
-      for (const part of parts) {
-        if (!current || typeof current !== 'object') break;
-        if (!(part in current)) break;
-        current = current[part];
-      }
-      
-      if (Array.isArray(current)) {
-        this.logger.logLevel('data', `Found ${arrayPath} using dot notation`);
-        return current;
       }
     }
     

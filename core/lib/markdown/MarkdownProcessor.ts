@@ -49,9 +49,13 @@ export class MarkdownProcessor {
     
     // Find all properties that are likely to be arrays (collections)
     const arrayProperties = Object.keys(data).filter(key => {
-      // Check if it's an array or might be a collection
-      return Array.isArray(data[key]) || 
-             (typeof data[key] === 'object' && data[key] !== null);
+      // ONLY consider arrays, not all objects
+      return Array.isArray(data[key]);
+    });
+    
+    // Find all properties that are nested objects but not arrays
+    const objectProperties = Object.keys(data).filter(key => {
+      return typeof data[key] === 'object' && data[key] !== null && !Array.isArray(data[key]);
     });
     
     // Normalize all array properties dynamically
@@ -61,45 +65,60 @@ export class MarkdownProcessor {
       }
     });
     
+    // Log the object properties for debugging
+    if (objectProperties.length > 0) {
+      this.logger.logLevel('data', `Found nested object properties: ${objectProperties.join(', ')}`);
+    }
+    
+    // Keep nested objects intact
+    objectProperties.forEach(prop => {
+      // Log the structure for debugging
+      this.logger.logLevel('data', `Preserving nested object structure for: ${prop}`);
+      if (typeof data[prop] === 'object') {
+        this.logger.logLevel('data', `Keys in ${prop}: ${Object.keys(data[prop]).join(', ')}`);
+      }
+    });
+    
     return normalized;
   }
   
   private normalizeArray(data: any, arrayName: string): any[] {
-    // Fix nested array like experience.experience
-    if (!Array.isArray(data) && data[arrayName] && Array.isArray(data[arrayName])) {
-      this.logger.debug(`Fixed nested ${arrayName} array structure`);
-      data = data[arrayName];
-    }
-  
-    // Wrap in array if it's not already
+    // ONLY normalize actual arrays, not objects
     if (!Array.isArray(data)) {
-      this.logger.debug(`Converted ${arrayName} to array`);
-      data = [data];
+      // If it's not an array but has a same-named array property, extract it
+      if (data[arrayName] && Array.isArray(data[arrayName])) {
+        this.logger.debug(`Fixed nested ${arrayName} array structure`);
+        data = data[arrayName];
+      } else {
+        // For other non-array objects, just return them intact
+        this.logger.debug(`${arrayName} is not an array, returning as is`);
+        return data;
+      }
     }
   
-    // Normalize only objects, skip arrays of strings (e.g., tasks)
-    return data.map((item: any) => {
-      if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-        Object.keys(item).forEach(key => {
-          const value = item[key];
+    // For actual arrays, ensure each item is properly processed
+    if (Array.isArray(data)) {
+      return data.map((item: any) => {
+        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+          // For objects inside the array, process each property
+          Object.keys(item).forEach(key => {
+            const value = item[key];
   
-          // Skip if already an array of strings
-          if (Array.isArray(value) && typeof value[0] === 'string') return;
+            // Skip if already an array or if it's not a nested structure to normalize
+            if (!value || typeof value !== 'object' || Array.isArray(value)) return;
   
-          // Fix nested structure like tasks.tasks
-          if (!Array.isArray(value) && value && value[key] && Array.isArray(value[key])) {
-            this.logger.debug(`Fixed nested ${key} array structure in ${arrayName}`);
-            item[key] = value[key];
-          }
-  
-          // Convert single value into array
-          if (value && !Array.isArray(value)) {
-            this.logger.debug(`Converted ${key} to array in ${arrayName}`);
-            item[key] = [value];
-          }
-        });
-      }
-      return item;
-    });
+            // Fix nested structure like tasks.tasks, but ONLY if it has the expected structure
+            if (value[key] && Array.isArray(value[key])) {
+              this.logger.debug(`Fixed nested ${key} array structure in ${arrayName}`);
+              item[key] = value[key];
+            }
+          });
+        }
+        return item;
+      });
+    }
+    
+    // Fallback case
+    return Array.isArray(data) ? data : [data];
   }
 } 

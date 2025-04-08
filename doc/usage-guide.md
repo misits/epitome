@@ -59,6 +59,8 @@ Your content is written in markdown with YAML frontmatter. The frontmatter (betw
 
 The frontmatter uses YAML syntax and can contain any properties you want to use in your templates. The only required property is `theme`, which specifies which template to use.
 
+#### Basic Frontmatter
+
 ```yaml
 ---
 theme: "default"
@@ -69,6 +71,114 @@ date: "2023-04-15"
 tags: ["example", "markdown", "static site"]
 ---
 ```
+
+#### Nested Data Structures
+
+Epitome fully supports nested data structures in your frontmatter, which is useful for organizing related information:
+
+```yaml
+---
+theme: "portfolio"
+title: "Portfolio"
+name: "John Smith"
+
+# Hero section data
+hero:
+  title: "Creative Designer & Developer"
+  text: "I create beautiful digital experiences that drive results."
+  cta:
+    - label: "View Work"
+      url: "#projects"
+    - label: "Contact Me"
+      url: "#contact"
+
+# Projects section
+projects:
+  title: "My Recent Work"
+  description: "Here are some projects I've worked on recently."
+  featured:
+    - name: "E-commerce Website"
+      description: "A full-featured online store built with React."
+      image: "project1.jpg"
+      url: "https://example.com/project1"
+    - name: "Mobile App"
+      description: "An iOS/Android application for fitness tracking."
+      image: "project2.jpg"
+      url: "https://example.com/project2"
+---
+```
+
+#### Accessing Nested Data in Templates
+
+You can access any level of nested data in your templates using dot notation:
+
+```html
+<!-- Basic properties -->
+<title>{{title}} - {{name}}</title>
+
+<!-- Nested properties -->
+<div class="hero">
+  <h1>{{hero.title}}</h1>
+  <p>{{hero.text}}</p>
+  
+  <!-- First CTA button -->
+  <a href="{{hero.cta.0.url}}" class="button primary">{{hero.cta.0.label}}</a>
+  
+  <!-- Second CTA button, if it exists -->
+  {{@if hero.cta.1}}
+    <a href="{{hero.cta.1.url}}" class="button secondary">{{hero.cta.1.label}}</a>
+  {{/if}}
+</div>
+
+<!-- Accessing nested arrays with @each -->
+<div class="projects">
+  <h2>{{projects.title}}</h2>
+  <p>{{projects.description}}</p>
+  
+  <div class="project-grid">
+    {{@each projects.featured}}
+      <div class="project-card">
+        <img src="{{image}}" alt="{{name}}">
+        <h3>{{name}}</h3>
+        <p>{{description}}</p>
+        <a href="{{url}}">View Project</a>
+      </div>
+    {{/each}}
+  </div>
+</div>
+```
+
+#### Best Practices for Structured Data
+
+1. **Organize Related Data**: Group related properties under meaningful parent keys
+   ```yaml
+   contact:
+     email: "john@example.com"
+     phone: "+1 (123) 456-7890"
+     address: "123 Main St, City, Country"
+   ```
+
+2. **Use Arrays for Collections**: Consistent arrays work best for iterable content
+   ```yaml
+   skills:
+     - name: "Web Development"
+       level: "Expert"
+     - name: "UI/UX Design"
+       level: "Advanced"
+   ```
+
+3. **Consistent Properties**: Ensure each item in an array has the same properties
+   ```yaml
+   services:
+     - title: "Web Design"
+       icon: "palette.svg"
+       description: "Beautiful, responsive websites"
+     - title: "Development"
+       icon: "code.svg"
+       description: "Clean, efficient code"
+   ```
+
+4. **Use Nested Objects Sparingly**: While you can nest objects deeply, keeping your data structure simple will make your templates easier to maintain.
 
 ### Example: Product Landing Page
 

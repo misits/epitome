@@ -1,0 +1,60 @@
+@use 'global';
+@use 'base/breakpoint' as *;
+
+// Base theme styles
+.theme-portfolio {
+    // Demo styles for the GetProcessor demo
+    .get-demo {
+        max-width: 800px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+        h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 2rem;
+        }
+        
+        .demo-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            
+            h3 {
+                color: #0066cc;
+                margin-bottom: 1rem;
+                font-size: 1.5rem;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 0.5rem;
+            }
+            
+            p {
+                margin-bottom: 0.5rem;
+                line-height: 1.6;
+                
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+            
+            ul {
+                margin: 0;
+                padding-left: 1.5rem;
+                
+                li {
+                    margin-bottom: 0.5rem;
+                    
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+    }
+}
