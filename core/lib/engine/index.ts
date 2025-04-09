@@ -1,4 +1,4 @@
-export { HandlebarsLikeEngine } from '@lib/engine/HandlebarsLikeEngine';
+export { EpitomeEngine } from '@/lib/engine/EpitomeEngine';
 export { ConditionalProcessor } from '@lib/engine/processors/ConditionalProcessor';
 export { EachProcessor } from '@lib/engine/processors/EachProcessor';
 export { VariableProcessor } from '@lib/engine/processors/VariableProcessor';

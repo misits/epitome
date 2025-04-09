@@ -1,7 +1,3 @@
-/**
- * Epito.me - A static site generator for CV/resume creation from markdown
- */
-
 // Export main classes
 export { Generator } from './lib';
 

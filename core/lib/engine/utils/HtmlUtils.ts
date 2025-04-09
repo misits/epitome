@@ -19,6 +19,27 @@ export class HtmlUtils {
   }
 
   /**
+   * Sanitize a value for safe use in a HTML data-* attribute by converting
+   * to JSON and ensuring special characters are properly escaped
+   */
+  sanitizeForDataAttribute(value: any): string {
+    if (value === undefined || value === null) {
+      return '""';
+    }
+    
+    try {
+      // Convert to JSON and then escape any HTML special characters
+      // This makes it safe to use inside data-* attributes
+      const jsonString = JSON.stringify(value);
+      return this.escapeHtml(jsonString);
+    } catch (error) {
+      // Fallback to an empty string if JSON serialization fails
+      console.error('Failed to sanitize value for data attribute:', error);
+      return '""';
+    }
+  }
+
+  /**
    * Parse ID and class attributes from a string in the format "#id .class1 .class2 path"
    */
   parseAttributes(attributesStr: string): { id?: string; classes?: string[]; path: string } {

@@ -1,17 +1,22 @@
 <!-- This template extends the app.html layout -->
-{{@partial 'index/layouts/app'}}
+{{@partial 'index/app'}}
 
 {{@yield "head"}}
     <!-- Custom head content -->
-    <script type="text/javascript">
-        console.log('Hello from index.html');
-    </script>
 {{/yield}}
 
 {{@yield "content"}}
-    {{@partial 'index/layouts/hero'}}
-
-    <section class="wrapper container-2xl">
+    <div class="container" data-test="{{@sanitize test}}">
         {{{content}}}
-    </section>
+    </div>
+{{/yield}}
+
+{{@yield "scripts"}}
+    <!-- Custom footer scripts -->
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const test = document.querySelector('[data-test]');
+            console.log(JSON.parse(test.dataset.test));
+        });
+    </script>
 {{/yield}}

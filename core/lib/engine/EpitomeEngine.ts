@@ -9,10 +9,10 @@ import { ContextResolver } from '@lib/engine/context/ContextResolver';
 import { HtmlUtils } from '@lib/engine/utils/HtmlUtils';
 
 /**
- * HandlebarsLikeEngine - Template engine that implements a subset of Handlebars syntax
+ * EpitomeEngine - Template engine that implements a subset of Handlebars syntax
  * with improved handling of nested arrays
  */
-export class HandlebarsLikeEngine implements TemplateEngine {
+export class EpitomeEngine implements TemplateEngine {
   private logger: Logger;
   private templatesDir: string = './src/templates'; // Default templates directory
   private partialsDir: string = 'partials'; // Subdirectory for partials
@@ -28,7 +28,7 @@ export class HandlebarsLikeEngine implements TemplateEngine {
 
   constructor(logger: Logger, templatesDir?: string) {
     this.logger = logger;
-    this.logger.logLevel('debug', 'HandlebarsLikeEngine initialized');
+    this.logger.logLevel('debug', 'EpitomeEngine initialized');
     
     if (templatesDir) {
       this.templatesDir = templatesDir;
@@ -149,6 +149,9 @@ export class HandlebarsLikeEngine implements TemplateEngine {
     
     // Remove any {{@partial ...}} tags
     result = result.replace(/{{@partial\s+[^}]+}}/g, '');
+    
+    // Remove any {{@sanitize ...}} tags
+    result = result.replace(/{{@sanitize\s+[^}]+}}/g, '');
     
     // Remove any {{@yield ...}} and {{/yield}} tags
     result = result.replace(/{{@yield\s+[^}]+}}/g, '');

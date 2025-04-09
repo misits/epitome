@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from '../../lib/core/Logger';
-import { HandlebarsLikeEngine } from '../../lib/engine/HandlebarsLikeEngine';
+import { EpitomeEngine } from '../engine/EpitomeEngine';
 import { MarkdownProcessor } from '../../lib/markdown/MarkdownProcessor';
 import { AssetProcessor } from '../../lib/assets/AssetProcessor';
 import { GeneratorOptions, ResolvedGeneratorOptions, TemplateEngine } from '../../types/interfaces';
 
 /**
- * Generator - Main class that orchestrates the CV generation process
+ * Generator - Main class that orchestrates the generation process
  */
 export class Generator {
   private options: ResolvedGeneratorOptions;
@@ -50,7 +50,7 @@ export class Generator {
     }
     
     // Initialize components
-    this.templateEngine = new HandlebarsLikeEngine(this.logger, this.options.templatesDir);
+    this.templateEngine = new EpitomeEngine(this.logger, this.options.templatesDir);
     this.markdownProcessor = new MarkdownProcessor(this.logger);
     this.assetProcessor = new AssetProcessor(this.logger);
     

@@ -21,8 +21,26 @@ export class VariableProcessor {
    * Process variables and special directives in a template
    */
   processVariables(template: string, context: TemplateContext): string {
+    // Add support for {{@sanitize variable}} syntax for HTML data-* attributes
+    let result = template.replace(/{{@sanitize\s+([^}]+)}}/g, (fullMatch, variablePath) => {
+      const path = variablePath.trim();
+      
+      // Log the sanitize directive being processed
+      this.logger.logLevel('data', `Processing sanitize directive: {{@sanitize ${path}}}`);
+      
+      const value = this.contextResolver.resolvePath(context, path);
+      
+      if (value === undefined || value === null) {
+        this.logger.logLevel('data', `Variable not found for sanitize: ${path}`);
+        return '""';
+      }
+      
+      // Use the sanitizeForDataAttribute method to safely JSON-stringify the value
+      return this.htmlUtils.sanitizeForDataAttribute(value);
+    });
+    
     // Enhanced @ul and @ol directives with ID and class support
-    let result = template.replace(/{{@(ul|ol)\s+([^}]+)}}/g, (fullMatch, listType, attributesStr) => {
+    result = result.replace(/{{@(ul|ol)\s+([^}]+)}}/g, (fullMatch, listType, attributesStr) => {
       // Parse the attributes to extract id, classes, and the actual path
       const { id, classes, path } = this.htmlUtils.parseAttributes(attributesStr);
       

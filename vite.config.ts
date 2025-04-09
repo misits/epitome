@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
-import { handleDirectoryUrls } from './plugins/handleDirectoryUrls';
+import { handleDirectoryUrls } from './core/plugins/handleDirectoryUrls';
 
 export default defineConfig({
   // Base public path - can be changed for deployment to subdirectories

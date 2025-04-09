@@ -7,7 +7,7 @@
 export { Logger } from '@lib/core/Logger';
 
 // Template engine exports
-export { HandlebarsLikeEngine } from '@lib/engine/HandlebarsLikeEngine';
+export { EpitomeEngine } from '@/lib/engine/EpitomeEngine';
 export { 
   ConditionalProcessor,
   EachProcessor,
