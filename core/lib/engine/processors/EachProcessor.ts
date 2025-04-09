@@ -8,10 +8,18 @@ import { ContextResolver } from '@lib/engine/context/ContextResolver';
 export class EachProcessor {
   private logger: Logger;
   private contextResolver: ContextResolver;
+  private partialProcessor: any; // Will be set by setPartialProcessor
 
   constructor(logger: Logger, contextResolver: ContextResolver) {
     this.logger = logger;
     this.contextResolver = contextResolver;
+  }
+
+  /**
+   * Set the partial processor for handling partials within each blocks
+   */
+  setPartialProcessor(partialProcessor: any): void {
+    this.partialProcessor = partialProcessor;
   }
 
   /**
@@ -80,6 +88,11 @@ export class EachProcessor {
             processedItem = this.processConditionals(processedItem, itemContext);
           }
           
+          // Process partials if partial processor is available and there are partials to process
+          if (this.partialProcessor && (processedItem.includes('{{@partial') || processedItem.includes('{{#partial'))) {
+            processedItem = this.partialProcessor.processPartials(processedItem, itemContext);
+          }
+          
           // Then process variables
           processedItem = this.processVariables(processedItem, itemContext);
           
@@ -139,6 +152,42 @@ export class EachProcessor {
    */
   private processVariables(template: string, context: TemplateContext): string {
     let result = template;
+    
+    // Handle special function calls like @assetPath and @urlPath
+    // Match pattern like {{@assetPath 'style.css'}} or {{@urlPath 'about'}}
+    // Also handles variable arguments like {{@assetPath preview}}
+    result = result.replace(/{{@(assetPath|urlPath)\s+(?:['"]([^'"]+)['"]|([^}\s]+))(\s*)}}/g, (fullMatch, fnName, stringArg, varArg) => {
+      if (!(fnName in context) || typeof context[fnName] !== 'function') {
+        this.logger.logLevel('template', `Function ${fnName} not found in context`);
+        return '';
+      }
+      
+      let argValue;
+      
+      // If stringArg is defined, use it directly (it's a string literal like 'style.css')
+      if (stringArg !== undefined) {
+        argValue = stringArg;
+      } 
+      // Otherwise, it's a variable reference, so look it up in the context
+      else if (varArg !== undefined) {
+        argValue = this.contextResolver.resolvePath(context, varArg);
+        if (argValue === undefined || argValue === null) {
+          this.logger.logLevel('template', `Variable ${varArg} not found for ${fnName} call`);
+          return '';
+        }
+      } else {
+        this.logger.logLevel('template', `Invalid arguments for ${fnName} call`);
+        return '';
+      }
+      
+      try {
+        // Call the function with the resolved argument
+        return context[fnName](argValue);
+      } catch (error) {
+        this.logger.logLevel('template', `Error calling ${fnName} with argument ${argValue}:`, error);
+        return '';
+      }
+    });
     
     // Handle triple-brace variables (unescaped HTML)
     result = result.replace(/{{{([^{}]*?)}}}/g, (_, variablePath) => {

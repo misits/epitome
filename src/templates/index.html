@@ -6,17 +6,17 @@
 {{/yield}}
 
 {{@yield "content"}}
-    <div class="container" data-test="{{@sanitize test}}">
-        {{{content}}}
-    </div>
+    <div class="container" data-variables="{{@sanitize variables}}"></div>
+    <div data-next="{{@sanitize next}}"></div>
+    <div data-previous="{{@sanitize previous}}"></div>
 {{/yield}}
 
 {{@yield "scripts"}}
     <!-- Custom footer scripts -->
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            const test = document.querySelector('[data-test]');
-            console.log(JSON.parse(test.dataset.test));
+            const test = document.querySelector('[data-variables]');
+            console.log(JSON.parse(test.dataset.variables));
         });
     </script>
 {{/yield}}

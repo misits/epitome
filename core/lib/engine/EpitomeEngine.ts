@@ -34,14 +34,27 @@ export class EpitomeEngine implements TemplateEngine {
       this.templatesDir = templatesDir;
     }
     
-    // Initialize all processors
+    // Create utility classes
     this.contextResolver = new ContextResolver(this.logger);
     this.htmlUtils = new HtmlUtils();
+    
+    // Create processors
     this.conditionalProcessor = new ConditionalProcessor(this.logger, this.contextResolver);
     this.eachProcessor = new EachProcessor(this.logger, this.contextResolver);
     this.variableProcessor = new VariableProcessor(this.logger, this.contextResolver, this.htmlUtils);
     this.yieldProcessor = new YieldProcessor(this.logger);
-    this.partialProcessor = new PartialProcessor(this.logger, this.templatesDir, this.partialsDir, this.contextResolver);
+    this.partialProcessor = new PartialProcessor(
+      this.logger, 
+      this.templatesDir, 
+      this.partialsDir,
+      this.contextResolver
+    );
+    
+    // Connect processors that need references to each other
+    this.eachProcessor.setPartialProcessor(this.partialProcessor);
+    
+    // Log initialization
+    this.logger.logLevel('template', `Initialized EpitomeEngine with templates directory: ${this.templatesDir}`);
   }
 
   render(template: string, context: TemplateContext): string {
