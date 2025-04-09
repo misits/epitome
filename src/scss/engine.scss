@@ -1,0 +1,9 @@
+/* 
+ * Epitome SPA Engine Styles
+ * Styling for the single page application scene engine
+ */
+@use 'core/pannel' as *;
+@use 'core/transition' as *;
+
+// Apply engine transitions
+@include engine-transitions;

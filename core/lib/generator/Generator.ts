@@ -5,6 +5,7 @@ import { EpitomeEngine } from '../engine/EpitomeEngine';
 import { MarkdownProcessor } from '../../lib/markdown/MarkdownProcessor';
 import { AssetProcessor } from '../../lib/assets/AssetProcessor';
 import { GeneratorOptions, ResolvedGeneratorOptions, TemplateEngine } from '../../types/interfaces';
+import { SceneCompiler } from './SceneCompiler';
 
 /**
  * Generator - Main class that orchestrates the generation process
@@ -15,6 +16,8 @@ export class Generator {
   private templateEngine: TemplateEngine;
   private markdownProcessor: MarkdownProcessor;
   private assetProcessor: AssetProcessor;
+  private sceneCompiler: SceneCompiler;
+  private isSpaMode: boolean;
   
   constructor(options: GeneratorOptions = {}) {
     // Initialize with default values
@@ -53,6 +56,15 @@ export class Generator {
     this.templateEngine = new EpitomeEngine(this.logger, this.options.templatesDir);
     this.markdownProcessor = new MarkdownProcessor(this.logger);
     this.assetProcessor = new AssetProcessor(this.logger);
+    this.sceneCompiler = new SceneCompiler(this.logger);
+    
+    // Check if SPA mode is active
+    this.isSpaMode = process.argv.includes('--spa');
+    if (this.isSpaMode) {
+      this.logger.info('SPA mode enabled - will generate a single page application');
+      this.logger.info('In SPA mode, only index.html is generated and all markdown files are compiled into scenes.json');
+      this.logger.info('Any existing individual page HTML files will be removed from the output directory');
+    }
     
     // Ensure output directory exists
     this.ensureDirectoryExists(this.options.outputDir);
@@ -92,8 +104,30 @@ export class Generator {
       
       // 3. Get the template file based on theme
       this.logger.info('Step 3: Getting template file...');
-      const theme = data.theme || 'default';
-      const templatePath = path.join(process.cwd(), this.options.templatesDir, `${theme}.html`);
+      const theme = data.theme || 'global';
+      
+      // In SPA mode, skip individual page generation if not the index page
+      if (this.isSpaMode && mdFilename !== 'index.md') {
+        this.logger.info(`Skipping HTML generation for ${mdFilename} in SPA mode`);
+        return;
+      }
+      
+      // Use SPA template in SPA mode, otherwise use theme template
+      let templateName: string;
+      if (this.isSpaMode) {
+        // Check if there's a specialized template for this page
+        const specializedTemplate = path.join(process.cwd(), this.options.templatesDir, 'index', 'spa.html');
+        if (mdFilename === 'index.md' && fs.existsSync(specializedTemplate)) {
+          templateName = 'index/spa.html';
+          this.logger.info('Using specialized index SPA template');
+        } else {
+          templateName = 'spa.html';
+        }
+      } else {
+        templateName = `${theme}.html`;
+      }
+      
+      const templatePath = path.join(process.cwd(), this.options.templatesDir, templateName);
       const template = fs.readFileSync(templatePath, 'utf8');
       
       // 4. Create context with all data and HTML content
@@ -111,7 +145,9 @@ export class Generator {
         content: htmlContent,
         page_depth: pageDepth,
         current_page: mdFilename.replace('.md', ''),
-        theme: theme // Explicitly add theme to the context
+        theme: theme, // Explicitly add theme to the context
+        debug_mode: this.options.debug ? 'true' : 'false', // Pass as string for template
+        current_year: new Date().getFullYear() // Add current year for copyright notices
       };
       
       // 5. Process the template with the context
@@ -152,6 +188,21 @@ export class Generator {
         mediaQueryGrouping: this.options.mediaQueryGrouping
       });
       
+      // In SPA mode, also compile the engine.scss
+      if (this.isSpaMode) {
+        const engineSassFilePath = path.join(process.cwd(), this.options.scssDir, 'engine.scss');
+        if (fs.existsSync(engineSassFilePath)) {
+          this.logger.info('Compiling engine.scss for SPA mode...');
+          this.assetProcessor.compileSass({
+            sassFilePath: engineSassFilePath,
+            outputName: 'engine',
+            minify: this.options.minifyCss
+          });
+        } else {
+          this.logger.warn('engine.scss not found, skipping compilation');
+        }
+      }
+      
       // 8. Process JavaScript files
       this.logger.info('Step 8: Processing JavaScript files...');
       this.processJavaScript();
@@ -173,6 +224,34 @@ export class Generator {
     if (!fs.existsSync(jsDir)) {
       this.logger.info(`JavaScript directory not found: ${jsDir}, skipping JS processing`);
       return;
+    }
+    
+    // In SPA mode, process the engine.js and main.js files
+    if (this.isSpaMode) {
+      const outputJsDir = path.join(process.cwd(), this.options.outputDir, 'assets/js');
+      this.ensureDirectoryExists(outputJsDir);
+      
+      // Copy the engine.js to the assets directory
+      const engineJsPath = path.join(jsDir, 'engine.js');
+      if (fs.existsSync(engineJsPath)) {
+        this.logger.info('Processing engine.js for SPA mode...');
+        const outputEnginePath = path.join(outputJsDir, 'engine.js');
+        fs.copyFileSync(engineJsPath, outputEnginePath);
+        this.logger.info(`engine.js copied to: ${outputEnginePath}`);
+      } else {
+        this.logger.warn('engine.js not found in jsDir. SPA mode requires this file.');
+      }
+      
+      // Copy the main.js to the assets directory
+      const mainJsPath = path.join(jsDir, 'main.js');
+      if (fs.existsSync(mainJsPath)) {
+        this.logger.info('Processing main.js for SPA mode...');
+        const outputMainPath = path.join(outputJsDir, 'main.js');
+        fs.copyFileSync(mainJsPath, outputMainPath);
+        this.logger.info(`main.js copied to: ${outputMainPath}`);
+      } else {
+        this.logger.warn('main.js not found in jsDir. SPA mode requires this file.');
+      }
     }
     
     // Check for main.js or index.js as entry point
@@ -225,23 +304,39 @@ export class Generator {
       return;
     }
     
-    // Build each file
-    mdFiles.forEach(mdFile => {
-      // Special case for index.md - keep at root
-      if (mdFile === 'index.md') {
-        this.build(mdFile, 'index.html');
-      } else {
-        // For all other files, create a folder structure
-        const pageName = mdFile.replace('.md', '');
-        const folderPath = path.join(process.cwd(), this.options.outputDir, pageName);
-        
-        // Create the directory if it doesn't exist
-        this.ensureDirectoryExists(folderPath);
-        
-        // Build the file as index.html inside the folder
-        this.build(mdFile, `${pageName}/index.html`);
-      }
-    });
+    // In SPA mode, clean the output directory first, then compile scenes.json
+    if (this.isSpaMode) {
+      // Clean the output directory to remove individual HTML files
+      this.cleanOutputDirectoryForSpa();
+      
+      this.logger.info('SPA mode: Compiling scenes.json...');
+      const dataDir = path.join(process.cwd(), this.options.outputDir, 'assets/data');
+      this.ensureDirectoryExists(dataDir);
+      
+      const scenesJsonPath = path.join(dataDir, 'scenes.json');
+      this.sceneCompiler.compileScenes(mdDir, scenesJsonPath);
+      
+      // Build only the index.html in SPA mode
+      this.build('index.md', 'index.html');
+    } else {
+      // Normal mode: build each file as separate HTML
+      mdFiles.forEach(mdFile => {
+        // Special case for index.md - keep at root
+        if (mdFile === 'index.md') {
+          this.build(mdFile, 'index.html');
+        } else {
+          // For all other files, create a folder structure
+          const pageName = mdFile.replace('.md', '');
+          const folderPath = path.join(process.cwd(), this.options.outputDir, pageName);
+          
+          // Create the directory if it doesn't exist
+          this.ensureDirectoryExists(folderPath);
+          
+          // Build the file as index.html inside the folder
+          this.build(mdFile, `${pageName}/index.html`);
+        }
+      });
+    }
     
     this.logger.success('✅ Build of all files completed successfully!');
   }
@@ -251,9 +346,13 @@ export class Generator {
    */
   public buildSpecificFiles(): void {
     this.logger.info('Building specific files...');
-    // Just build some important files for testing
-    this.build('about.md', 'about/index.html');
-    this.build('projects.md', 'projects/index.html');
+    
+    // Example for debugging
+    this.build('index.md', 'index.html');
+    
+    // Example for specific categories
+    this.build('chapter-1a.md', 'chapter-1a/index.html');
+    this.build('chapter-1b.md', 'chapter-1b/index.html');
     
     this.logger.success('Build of specific files completed successfully!');
   }
@@ -282,31 +381,69 @@ export class Generator {
         this.logger.info(`  - SCSS: ${scssDir}`);
         this.logger.info(`  - JavaScript: ${jsDir}`);
         
+        if (this.isSpaMode) {
+          this.logger.info('SPA mode: Changes to any markdown file will update the scenes.json file');
+        }
+        
         // Watch md files
         chokidar.watch(`${mdDir}/**/*.md`).on('change', (filePath: string) => {
           const filename = filePath.split('/').pop() || '';
           this.logger.info(`Markdown file changed: ${filename}`);
           
-          if (filename === 'index.md') {
-            this.build(filename, 'index.html');
+          if (this.isSpaMode) {
+            // In SPA mode, recompile scenes.json and rebuild only index.html
+            const dataDir = path.join(process.cwd(), this.options.outputDir, 'assets/data');
+            this.ensureDirectoryExists(dataDir);
+            
+            const scenesJsonPath = path.join(dataDir, 'scenes.json');
+            this.sceneCompiler.compileScenes(mdDir, scenesJsonPath);
+            
+            // If index.md changed, also rebuild the index.html
+            if (filename === 'index.md') {
+              this.build(filename, 'index.html');
+            }
           } else {
-            const pageName = filename.replace('.md', '');
-            this.build(filename, `${pageName}/index.html`);
+            // Normal mode: rebuild the changed file
+            if (filename === 'index.md') {
+              this.build(filename, 'index.html');
+            } else {
+              const pageName = filename.replace('.md', '');
+              this.build(filename, `${pageName}/index.html`);
+            }
           }
         });
         
         // Watch template files
         chokidar.watch(`${templatesDir}/**/*.html`).on('change', (filePath: string) => {
           this.logger.info(`Template file changed: ${filePath}`);
-          this.buildAll();
+          
+          if (this.isSpaMode) {
+            // In SPA mode, only rebuild index.html with spa.html template
+            if (filePath.includes('spa.html') || filePath.includes('partials')) {
+              this.build('index.md', 'index.html');
+            }
+          } else {
+            // In normal mode, rebuild all files when a template changes
+            this.buildAll();
+          }
         });
         
         // Watch SCSS files
         chokidar.watch(`${scssDir}/**/*.scss`).on('change', (filePath: string) => {
           this.logger.info(`SCSS file changed: ${filePath}`);
           
-          // Rebuild all markdown files if any SCSS file changes
-          // This ensures that the theme-specific CSS is updated
+          // If engine.scss changed, only recompile that file in SPA mode
+          if (this.isSpaMode && filePath.includes('engine.scss')) {
+            const engineSassFilePath = path.join(scssDir, 'engine.scss');
+            this.assetProcessor.compileSass({
+              sassFilePath: engineSassFilePath,
+              outputName: 'engine',
+              minify: this.options.minifyCss
+            });
+            return;
+          }
+          
+          // Otherwise rebuild all markdown files
           this.buildAll();
         });
         
@@ -314,36 +451,26 @@ export class Generator {
         chokidar.watch(`${jsDir}/**/*.js`).on('change', (filePath: string) => {
           this.logger.info(`JavaScript file changed: ${filePath}`);
           
-          // When any JS file changes, reprocess the main entry point
-          // This ensures that changes to imported files are picked up
-          const mainJsPath = path.join(jsDir, 'main.js');
-          const indexJsPath = path.join(jsDir, 'index.js');
-          
-          if (fs.existsSync(mainJsPath)) {
-            this.logger.info('Rebuilding from main.js entry point');
-            
-            this.assetProcessor.bundleJs({
-              entryPoint: mainJsPath,
-              outputName: 'main',
-              minify: this.options.minifyJs,
-              splitting: true,
-              formats: ['esm']
-            });
-            
-          } else if (fs.existsSync(indexJsPath)) {
-            this.logger.info('Rebuilding from index.js entry point');
-            
-            this.assetProcessor.bundleJs({
-              entryPoint: indexJsPath,
-              outputName: 'main',
-              minify: this.options.minifyJs,
-              splitting: true,
-              formats: ['esm']
-            });
-            
-          } else {
-            this.logger.info('No main entry point found. Skipping JavaScript processing.');
+          // If engine.js changed in SPA mode, just copy it
+          if (this.isSpaMode && filePath.includes('engine.js')) {
+            const engineJsPath = path.join(jsDir, 'engine.js');
+            if (fs.existsSync(engineJsPath)) {
+              this.logger.info('Processing engine.js for SPA mode...');
+              
+              // Copy the engine.js to the assets directory
+              const outputJsDir = path.join(process.cwd(), this.options.outputDir, 'assets/js');
+              this.ensureDirectoryExists(outputJsDir);
+              
+              const outputEnginePath = path.join(outputJsDir, 'engine.js');
+              fs.copyFileSync(engineJsPath, outputEnginePath);
+              
+              this.logger.info(`engine.js copied to: ${outputEnginePath}`);
+            }
+            return;
           }
+          
+          // Otherwise process JavaScript normally
+          this.processJavaScript();
         });
         
         this.logger.success('Watching for changes. Press Ctrl+C to stop.');
@@ -370,5 +497,92 @@ export class Generator {
       this.logger.error(`Error creating directory: ${dirPath}`, error);
       throw error;
     }
+  }
+  
+  /**
+   * Clean the output directory when in SPA mode to remove individual HTML files
+   * that are not needed in SPA mode
+   */
+  private cleanOutputDirectoryForSpa(): void {
+    if (!this.isSpaMode) return;
+    
+    try {
+      this.logger.info('SPA mode: Cleaning output directory of individual page files...');
+      
+      const outputDir = path.join(process.cwd(), this.options.outputDir);
+      
+      // Track how many files/directories were deleted
+      let removedHtmlCount = 0;
+      let removedDirCount = 0;
+      
+      const trackRemoval = (type: 'html' | 'dir') => {
+        if (type === 'html') removedHtmlCount++;
+        else removedDirCount++;
+      };
+      
+      this.cleanDirectory(outputDir, true, trackRemoval);
+      
+      // Log summary of the cleaning
+      this.logger.success(`Output directory cleaned for SPA mode: ${removedHtmlCount} HTML files and ${removedDirCount} directories removed`);
+    } catch (error) {
+      this.logger.error('Error cleaning output directory:', error);
+    }
+  }
+  
+  /**
+   * Recursively clean a directory, removing HTML files (except index.html in the root)
+   * and empty directories
+   * @param dirPath The directory to clean
+   * @param isRoot Whether this is the root output directory
+   * @param onRemove Callback when a file or directory is removed
+   * @returns Whether the directory is empty after cleaning
+   */
+  private cleanDirectory(
+    dirPath: string, 
+    isRoot: boolean = true,
+    onRemove?: (type: 'html' | 'dir') => void
+  ): boolean {
+    if (!fs.existsSync(dirPath)) return true;
+    
+    let isEmpty = true;
+    const items = fs.readdirSync(dirPath);
+    
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item);
+      const stat = fs.statSync(itemPath);
+      
+      // Skip essential directories that shouldn't be cleaned
+      if (isRoot && ['assets', 'favicon', '.git'].includes(item)) {
+        isEmpty = false;
+        continue;
+      }
+      
+      if (stat.isDirectory()) {
+        // Recursively clean subdirectory and remove if empty
+        const subdirEmpty = this.cleanDirectory(itemPath, false, onRemove);
+        if (subdirEmpty) {
+          this.logger.debug(`Removing empty directory: ${itemPath}`);
+          fs.rmdirSync(itemPath);
+          if (onRemove) onRemove('dir');
+        } else {
+          isEmpty = false;
+        }
+      } else {
+        // Handle files
+        const ext = path.extname(item);
+        const fileName = path.basename(item);
+        
+        // Delete HTML files except root index.html
+        if (ext === '.html' && !(isRoot && fileName === 'index.html')) {
+          this.logger.debug(`Removing HTML file: ${itemPath}`);
+          fs.unlinkSync(itemPath);
+          if (onRemove) onRemove('html');
+        } else {
+          isEmpty = false;
+        }
+      }
+    }
+    
+    return isEmpty;
   }
 } 

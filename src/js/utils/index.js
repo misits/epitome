@@ -16,6 +16,17 @@ import { numberUtils } from './number.js';
 import { validation } from './validation.js';
 import { fetchWithTimeout } from './fetch.js';
 import { generateUUID, copyToClipboard } from './misc.js';
+import { 
+  validateScene, 
+  extractSummary, 
+  createSceneId, 
+  findOrphanedScenes, 
+  hasConditionalAccess,
+  createScene,
+  mergeSceneData,
+  hasReachableChoices,
+  findSceneReferences
+} from './scene.js';
 
 // Re-export everything
 export {
@@ -59,5 +70,16 @@ export {
   
   // Miscellaneous utilities
   generateUUID,
-  copyToClipboard
+  copyToClipboard,
+  
+  // Scene utilities
+  validateScene,
+  extractSummary,
+  createSceneId,
+  findOrphanedScenes,
+  hasConditionalAccess,
+  createScene,
+  mergeSceneData,
+  hasReachableChoices,
+  findSceneReferences
 }; 

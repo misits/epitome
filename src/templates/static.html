@@ -1,5 +1,5 @@
 <!-- This template extends the app.html layout -->
-{{@partial 'index/app'}}
+{{@partial 'static/app'}}
 
 {{@yield "head"}}
     <!-- Custom head content -->
@@ -7,8 +7,6 @@
 
 {{@yield "content"}}
     <div class="container" data-variables="{{@sanitize variables}}"></div>
-    <div data-next="{{@sanitize next}}"></div>
-    <div data-previous="{{@sanitize previous}}"></div>
 {{/yield}}
 
 {{@yield "scripts"}}

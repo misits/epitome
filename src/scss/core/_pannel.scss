@@ -1,0 +1,18 @@
+.settings-panel {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+
+    display: flex;
+    gap: 0.5rem;
+    
+    button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        background-color: var(--color-white, #fff);
+        border: 1px solid var(--color-secondary, #64748B);
+        border-radius: var(--radius-sm, 0.125rem);
+        cursor: pointer;
+  }
+}

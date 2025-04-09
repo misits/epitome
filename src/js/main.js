@@ -1,59 +1,57 @@
 /**
- * Main application entry point
+ * Main entry point for the Epitome SPA
+ * Imports and exports all utilities and the engine
  */
-import { 
-  debounce,
-  dateUtils, 
-  domUtils, 
-  stringUtils,
-  storage
-} from './utils/index.js';
 
-/**
- * Initialize application
- */
-function initApp() {
-  setupEventListeners();
-  initializeExamples();
-}
+// Import all utilities from the utils index
+import * as utils from './utils/index.js';
 
-/**
- * Set up event listeners
- */
-function setupEventListeners() {
-  // Handle window resize with debounce to improve performance
-  window.addEventListener('resize', debounce(() => {
-    // Update UI or perform actions on resize
-    console.log('Window resized:', window.innerWidth, 'x', window.innerHeight);
-  }, 250));
-}
+// Re-export all utilities
+export * from './utils/index.js';
 
-/**
- * Initialize examples (for demonstration purposes)
- * In a real application, you would replace this with actual functionality
- */
-function initializeExamples() {
-  // Log current date information
-  const now = new Date();
-  console.log(
-    'Today:', 
-    dateUtils.format(now, { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    })
-  );
+// Import the engine and initialize it with utilities
+import EpitomeSPA, { initUtils } from './engine.js';
 
-  // Check if we have saved user preferences
-  const savedPreferences = storage.get('userPreferences');
-  if (savedPreferences) {
-    console.log('Loaded user preferences:', savedPreferences);
-  } else {
-    // Set default preferences if none exist
-    storage.set('userPreferences', {});
+// Initialize the engine with utilities
+initUtils(utils);
+
+// Export the engine as default and named export
+export { EpitomeSPA };
+export default EpitomeSPA;
+
+// Add to window for direct browser access
+window.EpitomeSPA = EpitomeSPA;
+
+// Auto-initialize when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if auto-initialization is disabled
+  const noAutoInit = document.querySelector('[data-no-auto-init="true"]');
+  if (noAutoInit) {
+    console.log('Automatic initialization disabled');
+    return;
   }
-}
 
-// Initialize the application when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);
+  // Get container and debug setting
+  const container = document.getElementById('app-container');
+  if (!container) {
+    console.warn('No container with ID "app-container" found. Skipping auto-initialization.');
+    return;
+  }
+
+  const debug = container.getAttribute('data-debug-mode') === 'true';
+  
+  console.log('Initializing Epitome SPA Engine...');
+  try {
+    const engine = new EpitomeSPA({
+      containerId: 'app-container',
+      initialScene: 'index',
+      scenesPath: './assets/data/scenes.json',
+      debugMode: debug
+    });
+    
+    // Expose engine instance globally for debugging
+    window.gameEngine = engine;
+  } catch (error) {
+    console.error('Failed to initialize Epitome SPA Engine:', error);
+  }
+});
