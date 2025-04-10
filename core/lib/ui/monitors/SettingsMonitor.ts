@@ -88,13 +88,28 @@ export class SettingsMonitor {
       if (!appContainer) return;
       
       if (animationsEnabled) {
-        // If animations are enabled, add active class and remove no-animation
-        appContainer.classList.remove('no-animation');
+        // If animations are enabled, first remove all animation-related classes
+        appContainer.classList.remove('no-animation', 'transitioning');
+        
+        // Force a reflow to ensure transitions work properly
+        void appContainer.offsetWidth;
+        
+        // Then add the active class to enable transitions
         appContainer.classList.add('active');
       } else {
-        // If animations are disabled, use no-animation class
+        // If animations are disabled, remove animation classes first
         appContainer.classList.remove('active', 'transitioning');
+        
+        // Force a reflow
+        void appContainer.offsetWidth;
+        
+        // Add no-animation class
         appContainer.classList.add('no-animation');
+      }
+      
+      // Log the current classes for debugging
+      if (this.engineInstance && this.engineInstance.options.debugMode) {
+        console.log('Updated scene classes:', appContainer.className);
       }
     } catch (error) {
       console.error('Failed to update scene classes:', error);

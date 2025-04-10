@@ -9,19 +9,41 @@
 // Main app container - starts hidden and becomes visible
 #app-container {
   opacity: 0;
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 450ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+  position: relative;
+  visibility: visible;
   
+  // Active state - fully visible
   &.active {
     opacity: 1;
+    transition: opacity 450ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
+  // No animation state - immediately visible
   &.no-animation {
-    opacity: 1;
-    transition: none;
+    opacity: 1 !important; // Override any other opacity settings
+    transition: none !important;
+    
+    // Also ensure that nested content is immediately visible
+    * {
+      opacity: 1 !important;
+      transition: none !important;
+    }
   }
   
+  // Transitioning state - hidden during transition
   &.transitioning {
+    opacity: 0;
     pointer-events: none; // Prevents clicks during transition
+    transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  // Additional styling for scene transitions
+  .scene {
+    width: 100%;
+    height: 100%;
+    transition: inherit;
   }
 }
 
@@ -29,5 +51,18 @@
 .scene-content {
   opacity: 1;
   width: 100%;
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+  
+  // Make sure content is visible in non-animated mode
+  #app-container.no-animation & {
+    opacity: 1;
+    transition: none;
+  }
+  
+  // Ensure content is hidden during transitions
+  #app-container.transitioning & {
+    opacity: 0;
+  }
 }
 

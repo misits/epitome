@@ -1,17 +1,13 @@
 ---
-# Theme
-
-# Head
-title: "The Mountain Trail"
-name: "Epitome"
-summary: "You climb the rocky mountain trail, enjoying breathtaking views of the valley below."
-
-# Navigation
-next: 
-  - id: "index"
-    label: "Return to the crossroads"
-
-# Variables
+id: chapter-1b
+title: 'The Mountain Trail :)'
+name: Epitome
+summary: >-
+  You :) climb the rocky mountain trail, enjoying breathtaking views of the
+  valley below.
+next:
+  - id: index
+    label: Return to the crossroads
 variables: []
 ---
 

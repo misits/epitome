@@ -388,12 +388,50 @@ export class EpitomeSPA {
     // Save state
     this.saveState();
 
-    // Render the scene
-    this.renderCurrentScene();
-
-    // Trigger callback
-    if (typeof this.options.onSceneLoad === 'function') {
-      this.options.onSceneLoad(scene, choice);
+    // Check if animations are enabled and we have a container
+    if (this.options.animations && this.container) {
+      if (this.options.debugMode) {
+        console.log(`Navigating to scene ${sceneId} with animations`);
+        console.log(`Container classes before: ${this.container.className}`);
+      }
+      
+      // Make sure we have the correct initial state
+      // First remove any existing animation classes to ensure a clean state
+      this.container.classList.remove('active', 'no-animation');
+      
+      // Then add transitioning class
+      this.container.classList.add('transitioning');
+      
+      // Force a reflow to ensure the browser processes these changes
+      void this.container.offsetWidth;
+      
+      if (this.options.debugMode) {
+        console.log(`Container classes after: ${this.container.className}`);
+      }
+      
+      // Ensure browser processes this class change with a minimal delay
+      setTimeout(() => {
+        // Render the scene
+        this.renderCurrentScene();
+        
+        // Trigger callback
+        if (typeof this.options.onSceneLoad === 'function') {
+          this.options.onSceneLoad(scene, choice);
+        }
+      }, 20); // Short delay to ensure the transitioning class is applied
+    } else {
+      // Without animations, just render immediately
+      if (this.container) {
+        this.container.classList.add('no-animation');
+        this.container.classList.remove('active', 'transitioning');
+      }
+      
+      this.renderCurrentScene();
+      
+      // Trigger callback
+      if (typeof this.options.onSceneLoad === 'function') {
+        this.options.onSceneLoad(scene, choice);
+      }
     }
   }
 
@@ -452,18 +490,6 @@ export class EpitomeSPA {
     // Create scene container
     const sceneElement = document.createElement('div');
     sceneElement.className = 'scene';
-    
-    // Handle animation classes for container only
-    if (this.options.animations) {
-      if (this.container) {
-        this.container.classList.remove('no-animation');
-      }
-    } else {
-      if (this.container) {
-        this.container.classList.add('no-animation');
-        this.container.classList.remove('active');
-      }
-    }
     
     // Handle theme - both formats
     const theme = scene.theme || (scene.meta ? scene.meta.theme : null);
@@ -536,28 +562,34 @@ export class EpitomeSPA {
 
     // Animation for transition
     if (this.options.animations) {
-      // Add transitioning class to container
-      this.container.classList.add('transitioning');
+      // The transitioning class is already applied in navigateTo
+      // Just need to update the content and handle the end of transition
       
+      // Clear container and add new scene
+      this.container.innerHTML = '';
+      this.container.appendChild(sceneElement);
+      
+      // Force a reflow to ensure the transition starts properly
+      void this.container.offsetWidth;
+      
+      // Use a slightly longer delay that matches our CSS transition time
+      // to ensure the animation completes properly
       setTimeout(() => {
-        // Clear container and add new scene
         if (!this.container) return;
-        this.container.innerHTML = '';
-        this.container.appendChild(sceneElement);
         
-        // Remove transition class after a short delay
-        setTimeout(() => {
-          if (!this.container) return;
-          this.container.classList.remove('transitioning');
-          
-          // Set container as active to reveal content
-          setTimeout(() => {
-            if (this.container) {
-              this.container.classList.add('active');
-            }
-          }, 50);
-        }, 50);
-      }, this.options.transitionDuration);
+        // First remove the transitioning class
+        this.container.classList.remove('transitioning');
+        
+        // Force another reflow to ensure the browser processes the class change
+        void this.container.offsetWidth;
+        
+        // Then add the active class to trigger the fade-in animation
+        this.container.classList.add('active');
+        
+        if (this.options.debugMode) {
+          console.log('Animation complete, active class added');
+        }
+      }, 100); // Increased delay to ensure transition completes properly
     } else {
       // Without animation, just replace content
       this.container.innerHTML = '';
@@ -575,51 +607,98 @@ export class EpitomeSPA {
   private renderCustomScene(scene: Scene, containers: NodeListOf<Element>): void {
     if (!this.container) return;
 
-    // Add transitioning class to main container if animations are enabled
-    if (this.options.animations) {
-      this.container.classList.add('transitioning');
-      this.container.classList.remove('no-animation');
-    } else {
-      this.container.classList.add('no-animation');
-      this.container.classList.remove('active', 'transitioning');
-    }
+    // Make sure we're in sync with our container's state
+    const isAnimated = this.options.animations;
     
-    // Process each custom container
+    if (this.options.debugMode) {
+      console.log(`Rendering custom scene with animation: ${isAnimated}`);
+      console.log(`Container classes: ${this.container.className}`);
+      console.log(`Custom containers found: ${containers.length}`);
+    }
+
+    // First phase: Prepare containers for content update
     containers.forEach(container => {
-      // Check what part of the scene this container should display
-      const part = container.getAttribute('data-scene-container');
+      // Convert to HTMLElement to access style
+      const htmlContainer = container as HTMLElement;
       
-      // Handle only content container, use default rendering for others
+      // If we're animating, prepare container for transition
+      if (isAnimated) {
+        htmlContainer.style.transition = 'none'; // Temporarily disable transitions
+        htmlContainer.style.opacity = '0';       // Hide container
+      }
+    });
+    
+    // Force a reflow to apply initial states before content change
+    void document.body.offsetHeight;
+    
+    // Second phase: Update content in all containers
+    containers.forEach(container => {
+      const part = container.getAttribute('data-scene-container');
+      const htmlContainer = container as HTMLElement;
+      
+      // Handle content container vs other types
       if (part === 'content') {
-        // Use html field if available (legacy), otherwise use content
+        // Update the content
         container.innerHTML = scene.html || scene.content || '';
         container.className = 'scene-content';
       } else {
-        // Use default rendering for all other container types
-        this.renderDefaultScene(scene);
+        // For non-content containers, we'll just clear them
+        // Don't call renderDefaultScene to avoid nested rendering
+        container.innerHTML = '';
       }
       
-      // Add scene ID to container for reference
+      // Set scene ID reference
       const sceneId = scene.id || '';
       container.setAttribute('data-current-scene', sceneId);
     });
     
-    // After updating containers, handle animation completion
-    if (this.options.animations) {
+    // Force another reflow after content update
+    void document.body.offsetHeight;
+    
+    // Third phase: Begin the transition
+    if (isAnimated) {
+      // Wait a short time before starting container transitions
+      setTimeout(() => {
+        containers.forEach(container => {
+          const htmlContainer = container as HTMLElement;
+          
+          // Setup the transition and begin fade-in
+          htmlContainer.style.transition = 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+          htmlContainer.style.opacity = '1';
+        });
+        
+        if (this.options.debugMode) {
+          console.log('Custom container transitions applied');
+        }
+      }, 30);
+      
+      // Main container transition
       setTimeout(() => {
         if (!this.container) return;
         
+        // First remove transitioning class
         this.container.classList.remove('transitioning');
         
-        // Set container as active to reveal content with proper null check
-        setTimeout(() => {
-          if (this.container) {
-            this.container.classList.add('active');
-          }
-        }, 50);
-      }, this.options.transitionDuration);
+        // Force reflow 
+        void this.container.offsetWidth;
+        
+        // Add active class for fade-in
+        this.container.classList.add('active');
+        
+        if (this.options.debugMode) {
+          console.log('Main container transition complete');
+          console.log(`Final classes: ${this.container.className}`);
+        }
+      }, 120);
     } else {
-      // Without animations, just make sure container is visible
+      // Without animations just make sure everything is visible
+      containers.forEach(container => {
+        const htmlContainer = container as HTMLElement;
+        htmlContainer.style.opacity = '1';
+        htmlContainer.style.transition = 'none';
+      });
+      
+      // Make main container visible
       this.container.classList.add('no-animation');
       this.container.classList.remove('active', 'transitioning');
     }
