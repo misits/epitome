@@ -9,6 +9,7 @@ import { Scene } from '@/types/spa';
 import { FrontmatterMonitor } from './FrontmatterMonitor';
 import { SettingsMonitor } from './SettingsMonitor';
 import { SceneNavigationMonitor } from './SceneNavigationMonitor';
+import { storage } from '@/helpers/storage';
 
 interface DevMonitorOptions {
   containerSelector?: string;
@@ -16,11 +17,20 @@ interface DevMonitorOptions {
   apiEndpoint?: string;
 }
 
+interface MonitorPosition {
+  x: number;
+  y: number;
+}
+
 export class DevMonitor {
   private pane: Pane | null = null;
   private container: HTMLElement | null = null;
+  private paneContainer: HTMLElement | null = null;
+  private dragHandle: HTMLElement | null = null;
   private engineInstance: any = null;
   private apiEndpoint: string;
+  private isDragging: boolean = false;
+  private dragOffset: { x: number, y: number } = { x: 0, y: 0 };
   
   // Specialized monitors
   private frontmatterMonitor: FrontmatterMonitor | null = null;
@@ -38,22 +48,127 @@ export class DevMonitor {
     }
     
     // Create pane wrapper div
-    const paneContainer = document.createElement('div');
-    paneContainer.id = 'epitome-dev-monitor';
-    paneContainer.style.position = 'fixed';
-    paneContainer.style.top = '10px';
-    paneContainer.style.right = '10px';
-    paneContainer.style.zIndex = '9999';
-    this.container.appendChild(paneContainer);
+    this.paneContainer = document.createElement('div');
+    this.paneContainer.id = 'epitome-dev-monitor';
+    this.paneContainer.style.position = 'fixed';
+    this.paneContainer.style.zIndex = '9999';
+    
+    // Load saved position or use defaults
+    const savedPosition = this.loadPosition();
+    this.paneContainer.style.left = `${savedPosition.x}px`;
+    this.paneContainer.style.top = `${savedPosition.y}px`;
+    
+    this.container.appendChild(this.paneContainer);
+    
+    // Create drag handle
+    this.dragHandle = document.createElement('div');
+    this.dragHandle.className = 'epitome-dev-monitor-drag-handle';
+    this.dragHandle.style.cursor = 'move';
+    this.dragHandle.style.position = 'absolute';
+    this.dragHandle.style.top = '0';
+    this.dragHandle.style.left = '0';
+    this.dragHandle.style.right = '0';
+    this.dragHandle.style.height = '28px'; // Height of Tweakpane title bar
+    this.dragHandle.style.zIndex = '10000';
+    this.paneContainer.appendChild(this.dragHandle);
     
     // Initialize Tweakpane
     this.pane = new Pane({
-      container: paneContainer,
+      container: this.paneContainer,
       title: options.title || 'Epitome Dev Tools'
     });
     
+    // Setup drag behavior
+    this.setupDragging();
+    
     // Initialize specialized monitors
     this.initializeMonitors();
+  }
+
+  /**
+   * Set up the dragging functionality
+   */
+  private setupDragging(): void {
+    if (!this.dragHandle || !this.paneContainer) return;
+
+    // Mouse down event - start dragging
+    this.dragHandle.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Only left mouse button
+      this.isDragging = true;
+      
+      // Calculate offset of mouse pointer relative to panel
+      const rect = this.paneContainer!.getBoundingClientRect();
+      this.dragOffset = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+      
+      // Prevent text selection during drag
+      e.preventDefault();
+    });
+    
+    // Mouse move event - dragging in progress
+    document.addEventListener('mousemove', (e) => {
+      if (!this.isDragging || !this.paneContainer) return;
+      
+      // Calculate new position
+      const x = e.clientX - this.dragOffset.x;
+      const y = e.clientY - this.dragOffset.y;
+      
+      // Apply new position
+      this.paneContainer.style.left = `${x}px`;
+      this.paneContainer.style.top = `${y}px`;
+    });
+    
+    // Mouse up event - end dragging
+    document.addEventListener('mouseup', () => {
+      if (this.isDragging) {
+        this.isDragging = false;
+        this.savePosition();
+      }
+    });
+  }
+  
+  /**
+   * Save the current position to localStorage
+   */
+  private savePosition(): void {
+    if (!this.paneContainer) return;
+    
+    const rect = this.paneContainer.getBoundingClientRect();
+    const position: MonitorPosition = {
+      x: rect.left,
+      y: rect.top
+    };
+    
+    storage.set('epitome_dev_monitor_position', position);
+  }
+  
+  /**
+   * Load the saved position from localStorage
+   */
+  private loadPosition(): MonitorPosition {
+    const defaultPosition: MonitorPosition = { x: 10, y: 10 };
+    const savedPosition = storage.get<MonitorPosition>('epitome_dev_monitor_position');
+    
+    // If no saved position, return default
+    if (!savedPosition) {
+      return defaultPosition;
+    }
+    
+    // Validate position (make sure it's on screen)
+    if (typeof window !== 'undefined') {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      // If position is off-screen, reset to default
+      if (savedPosition.x < 0 || savedPosition.x > windowWidth - 50 ||
+          savedPosition.y < 0 || savedPosition.y > windowHeight - 50) {
+        return defaultPosition;
+      }
+    }
+    
+    return savedPosition;
   }
 
   /**

@@ -22,10 +22,13 @@ const disableJsMinify = process.argv.includes('--no-js-minify');
 // Check if SPA mode is enabled
 const isSpaMode = process.argv.includes('--spa');
 
+// Check if debug mode is enabled
+const isDebugMode = process.argv.includes('--debug');
+
 try {
   // Create generator with default paths
   const generator = new Generator({
-    debug: true,
+    debug: isDebugMode,
     outputDir: './public',
     mdDir: './src/md',
     templatesDir: './src/templates',

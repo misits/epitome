@@ -995,25 +995,16 @@ export class FrontmatterMonitor {
     statusElement.style.bottom = '20px';
     statusElement.style.right = '20px';
     statusElement.style.padding = '8px 12px';
-    statusElement.style.borderRadius = '4px';
+    statusElement.style.borderRadius = '6px';
     statusElement.style.zIndex = '10000';
-    statusElement.style.fontSize = '14px';
-    statusElement.style.fontFamily = 'sans-serif';
+    statusElement.style.fontSize = '11px';
+    statusElement.style.fontFamily = 'var(--tp-base-font-family, Roboto Mono, Source Code Pro, Menlo, Courier, monospace)';
     statusElement.textContent = message;
     
     // Set color based on type
     switch (type) {
-      case 'success':
-        statusElement.style.backgroundColor = '#4CAF50';
-        statusElement.style.color = '#fff';
-        break;
-      case 'error':
-        statusElement.style.backgroundColor = '#F44336';
-        statusElement.style.color = '#fff';
-        break;
-      case 'info':
       default:
-        statusElement.style.backgroundColor = '#333';
+        statusElement.style.backgroundColor = 'var(--tp-base-background-color, hsl(230, 7%, 17%))';
         statusElement.style.color = '#fff';
         break;
     }
