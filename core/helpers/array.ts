@@ -8,8 +8,8 @@ export const arrayUtils = {
    * @param {number} size - Size of each chunk
    * @returns {Array} Array of chunks
    */
-  chunk: (array, size = 1) => {
-    const chunks = [];
+  chunk: <T>(array: T[], size: number = 1): T[][] => {
+    const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += size) {
       chunks.push(array.slice(i, i + size));
     }
@@ -21,10 +21,10 @@ export const arrayUtils = {
    * @param {Array} array - Array to shuffle
    * @returns {Array} Shuffled array
    */
-  shuffle: (array) => {
+  shuffle: <T>(array: T[]): T[] => {
     const result = [...array];
     let currentIndex = result.length;
-    let temporaryValue, randomIndex;
+    let temporaryValue: T, randomIndex: number;
     
     while (currentIndex !== 0) {
       randomIndex = Math.floor(Math.random() * currentIndex);
@@ -43,7 +43,7 @@ export const arrayUtils = {
    * @param {Array} array - Source array
    * @returns {*} Random item from array
    */
-  randomItem: (array) => {
+  randomItem: <T>(array: T[]): T => {
     return array[Math.floor(Math.random() * array.length)];
   },
   
@@ -52,7 +52,7 @@ export const arrayUtils = {
    * @param {Array} array - Array with possible duplicates
    * @returns {Array} Array with unique items
    */
-  unique: (array) => {
+  unique: <T>(array: T[]): T[] => {
     return [...new Set(array)];
   }
 }; 

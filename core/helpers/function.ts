@@ -9,10 +9,14 @@
  * @param {boolean} immediate - Whether to call the function immediately
  * @returns {Function} The debounced function
  */
-export const debounce = (func, wait = 300, immediate = false) => {
-  let timeout;
+export const debounce = <T extends (...args: any[]) => any>(
+  func: T, 
+  wait: number = 300, 
+  immediate: boolean = false
+): ((...args: Parameters<T>) => void) => {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   
-  return function(...args) {
+  return function(this: any, ...args: Parameters<T>): void {
     const context = this;
     
     const later = () => {
@@ -21,7 +25,7 @@ export const debounce = (func, wait = 300, immediate = false) => {
     };
     
     const callNow = immediate && !timeout;
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
     timeout = setTimeout(later, wait);
     
     if (callNow) func.apply(context, args);
@@ -34,12 +38,15 @@ export const debounce = (func, wait = 300, immediate = false) => {
  * @param {number} limit - The time limit in milliseconds
  * @returns {Function} The throttled function
  */
-export const throttle = (func, limit = 300) => {
-  let inThrottle;
-  let lastFunc;
-  let lastRan;
+export const throttle = <T extends (...args: any[]) => any>(
+  func: T, 
+  limit: number = 300
+): ((...args: Parameters<T>) => void) => {
+  let inThrottle: boolean = false;
+  let lastFunc: ReturnType<typeof setTimeout> | null = null;
+  let lastRan: number = 0;
   
-  return function(...args) {
+  return function(this: any, ...args: Parameters<T>): void {
     const context = this;
     
     if (!inThrottle) {
@@ -47,7 +54,7 @@ export const throttle = (func, limit = 300) => {
       lastRan = Date.now();
       inThrottle = true;
     } else {
-      clearTimeout(lastFunc);
+      if (lastFunc) clearTimeout(lastFunc);
       
       lastFunc = setTimeout(() => {
         if (Date.now() - lastRan >= limit) {
@@ -64,4 +71,4 @@ export const throttle = (func, limit = 300) => {
  * @param {number} ms - Milliseconds to wait
  * @returns {Promise} Promise that resolves after the wait
  */
-export const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms)); 
+export const wait = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms)); 

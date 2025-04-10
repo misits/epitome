@@ -4,11 +4,24 @@
  * Handles navigation, state management, and rendering of scenes
  */
 
-// Utility variables will be injected from main.js
-let domUtils, storage, fetchWithTimeout, validateScene, extractSummary, findOrphanedScenes;
+import { 
+  Scene, 
+  Choice, 
+  SpaOptions, 
+  EpitomeSettings, 
+  UtilityDependencies 
+} from './types';
+
+// Utility variables - will be injected from main.ts
+let domUtils: any;
+let storage: any;
+let fetchWithTimeout: any;
+let validateScene: any;
+let extractSummary: any;
+let findOrphanedScenes: any;
 
 // Static method to initialize utilities
-export function initUtils(utils) {
+export function initUtils(utils: UtilityDependencies): void {
   domUtils = utils.domUtils;
   storage = utils.storage;
   fetchWithTimeout = utils.fetchWithTimeout;
@@ -17,9 +30,20 @@ export function initUtils(utils) {
   findOrphanedScenes = utils.findOrphanedScenes;
 }
 
-class EpitomeSPA {
-  constructor(options = {}) {
-    // Configuration
+export class EpitomeSPA {
+  private options: Required<SpaOptions>;
+  private state: {
+    currentScene: string | null;
+    flags: Set<string>;
+    history: string[];
+    variables: Record<string, any>;
+  };
+  private container: HTMLElement | null = null;
+  private scenes: Record<string, Scene> | null = null;
+  private lastChoice: Choice | null = null;
+
+  constructor(options: SpaOptions = {}) {
+    // Configuration with defaults
     this.options = {
       containerId: options.containerId || 'app-container',
       initialScene: options.initialScene || 'index',
@@ -33,17 +57,13 @@ class EpitomeSPA {
       persistState: options.persistState !== false
     };
 
-    // State
+    // State - match JS version structure
     this.state = {
       currentScene: null,
-      flags: new Set(),
+      flags: new Set<string>(),
       history: [],
       variables: {}
     };
-
-    // DOM elements
-    this.container = null;
-    this.scenes = null;
     
     // Initialize
     this.init();
@@ -52,7 +72,7 @@ class EpitomeSPA {
   /**
    * Initialize the engine
    */
-  async init() {
+  private async init(): Promise<void> {
     try {
       // Get container
       this.container = domUtils.qs(`#${this.options.containerId}`);
@@ -88,12 +108,12 @@ class EpitomeSPA {
   /**
    * Load saved settings from localStorage
    */
-  loadSettings() {
+  private loadSettings(): void {
     if (!this.options.persistState) return;
     
     try {
       // First check for structured settings
-      const settings = storage.get('epitome_settings');
+      const settings = storage.get('epitome_settings') as EpitomeSettings | null;
       if (settings) {
         // Apply animation settings if available
         if (typeof settings.animations === 'boolean') {
@@ -130,20 +150,20 @@ class EpitomeSPA {
   /**
    * Load scenes data from JSON file
    */
-  async loadScenes() {
+  private async loadScenes(): Promise<void> {
     try {
       const response = await fetchWithTimeout(this.options.scenesPath);
       this.scenes = await response.json();
       
       // Check if we have any scenes
-      if (Object.keys(this.scenes).length === 0) {
+      if (!this.scenes || Object.keys(this.scenes).length === 0) {
         console.error('No scenes found in scenes.json');
         this.showErrorMessage('No scenes found. Please check the scenes.json file.');
         return;
       }
       
       // Validate scenes
-      let invalidScenes = [];
+      const invalidScenes: string[] = [];
       Object.entries(this.scenes).forEach(([id, scene]) => {
         if (!validateScene(scene)) {
           invalidScenes.push(id);
@@ -156,7 +176,7 @@ class EpitomeSPA {
       }
       
       // Check for orphaned scenes in debug mode
-      if (this.options.debugMode) {
+      if (this.options.debugMode && this.scenes) {
         const orphanedScenes = findOrphanedScenes(this.scenes);
         if (orphanedScenes.length > 0) {
           console.warn(`Found ${orphanedScenes.length} orphaned scenes that are not referenced from any other scene:`, orphanedScenes);
@@ -164,14 +184,14 @@ class EpitomeSPA {
       }
       
       // Check if initial scene exists
-      if (!this.scenes[this.options.initialScene]) {
+      if (this.scenes && !this.scenes[this.options.initialScene]) {
         console.warn(`Initial scene "${this.options.initialScene}" not found. Using first available scene.`);
         this.options.initialScene = Object.keys(this.scenes)[0];
       }
       
       if (this.options.debugMode) {
         console.log('Scenes loaded:', this.scenes);
-        console.log('Available scene IDs:', Object.keys(this.scenes));
+        console.log('Available scene IDs:', Object.keys(this.scenes || {}));
         console.log('Using initial scene:', this.options.initialScene);
       }
     } catch (error) {
@@ -183,9 +203,8 @@ class EpitomeSPA {
 
   /**
    * Display an error message in the container
-   * @param {string} message Error message to display
    */
-  showErrorMessage(message) {
+  private showErrorMessage(message: string): void {
     if (this.container) {
       const errorElement = document.createElement('div');
       errorElement.className = 'scene-error';
@@ -201,18 +220,24 @@ class EpitomeSPA {
   /**
    * Load saved state from localStorage
    */
-  loadSavedState() {
+  private loadSavedState(): void {
     if (!this.options.persistState) return;
     
     try {
-      const savedState = storage.get('epitome_state');
+      const savedState = storage.get('epitome_state') as any;
       if (savedState) {
         this.state.currentScene = savedState.currentScene;
         this.state.history = savedState.history || [];
         this.state.variables = savedState.variables || {};
         
-        // Convert flags array back to Set
-        this.state.flags = new Set(savedState.flags || []);
+        // Convert flags array back to Set if needed
+        if (Array.isArray(savedState.flags)) {
+          this.state.flags = new Set(savedState.flags);
+        } else if (savedState.flags instanceof Set) {
+          this.state.flags = savedState.flags;
+        } else {
+          this.state.flags = new Set();
+        }
         
         if (this.options.debugMode) {
           console.log('Loaded saved state:', this.state);
@@ -228,7 +253,7 @@ class EpitomeSPA {
   /**
    * Save current state to localStorage
    */
-  saveState() {
+  public saveState(): void {
     if (!this.options.persistState) return;
     
     try {
@@ -251,10 +276,10 @@ class EpitomeSPA {
   /**
    * Reset state to defaults
    */
-  resetState() {
+  public resetState(): void {
     this.state = {
       currentScene: null,
-      flags: new Set(),
+      flags: new Set<string>(),
       history: [],
       variables: {}
     };
@@ -273,11 +298,14 @@ class EpitomeSPA {
 
   /**
    * Navigate to a scene by ID
-   * @param {string} sceneId ID of the scene to navigate to
-   * @param {Object} choice Optional choice data that led to this scene
    */
-  navigateTo(sceneId, choice = null) {
+  public navigateTo(sceneId: string, choice: Choice | null = null): void {
     // Find the scene by ID
+    if (!this.scenes) {
+      console.error('Scenes not loaded');
+      return;
+    }
+
     const scene = this.scenes[sceneId];
     if (!scene) {
       const errorMsg = `Scene not found: ${sceneId}`;
@@ -303,7 +331,7 @@ class EpitomeSPA {
 
     // Apply scene effects
     if (scene.set && Array.isArray(scene.set)) {
-      scene.set.forEach(flag => this.state.flags.add(flag));
+      scene.set.forEach((flag: string) => this.state.flags.add(flag));
     }
 
     // Update history
@@ -315,12 +343,12 @@ class EpitomeSPA {
       }
     }
 
-    // Update current scene
+    // Update current scene ID, not the entire object
     this.state.currentScene = sceneId;
     
     // Remember last choice that led here
     if (choice) {
-      this.state.lastChoice = choice;
+      this.lastChoice = choice;
     }
 
     // Save state
@@ -338,8 +366,13 @@ class EpitomeSPA {
   /**
    * Render the current scene
    */
-  renderCurrentScene() {
+  private renderCurrentScene(): void {
     // Get current scene
+    if (!this.state.currentScene || !this.scenes) {
+      console.error('Cannot render scene: No current scene or scenes not loaded');
+      return;
+    }
+    
     const sceneId = this.state.currentScene;
     const scene = this.scenes[sceneId];
     
@@ -347,7 +380,7 @@ class EpitomeSPA {
       console.error(`Cannot render scene: ${sceneId} - not found`);
       return;
     }
-
+    
     // Check if we have a custom scene container
     const customContainers = document.querySelectorAll('[data-scene-container]');
     
@@ -366,7 +399,8 @@ class EpitomeSPA {
       // Add a meta description based on the scene content
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
-        const summary = extractSummary(scene.html);
+        const content = scene.html || scene.content || '';
+        const summary = extractSummary(content);
         metaDesc.setAttribute('content', summary);
       }
     }
@@ -377,19 +411,24 @@ class EpitomeSPA {
   
   /**
    * Default scene rendering method (generates all HTML)
-   * @param {Object} scene The scene object to render
    */
-  renderDefaultScene(scene) {
+  private renderDefaultScene(scene: Scene): void {
+    if (!this.container) return;
+
     // Create scene container
     const sceneElement = document.createElement('div');
     sceneElement.className = 'scene';
     if (this.options.animations) {
       sceneElement.classList.add('entering');
     }
-    if (scene.theme) {
-      sceneElement.classList.add(`theme-${scene.theme}`);
+    
+    // Handle theme - both formats
+    const theme = scene.theme || (scene.meta ? scene.meta.theme : null);
+    if (theme) {
+      sceneElement.classList.add(`theme-${theme}`);
     }
-    sceneElement.setAttribute('data-scene-id', scene.id);
+    
+    sceneElement.setAttribute('data-scene-id', scene.id || '');
 
     // Add title if present
     if (scene.title) {
@@ -399,18 +438,19 @@ class EpitomeSPA {
       sceneElement.appendChild(titleElement);
     }
 
-    // Add content
+    // Add content - support both html and content fields (html takes precedence for backward compatibility)
     const contentElement = document.createElement('div');
     contentElement.className = 'scene-content';
-    contentElement.innerHTML = scene.html || ''; // Handle empty HTML
+    contentElement.innerHTML = scene.html || scene.content || ''; 
     sceneElement.appendChild(contentElement);
 
-    // Add choices if present
-    if (scene.next && scene.next.length > 0) {
+    // Add choices if present - support both next and choices fields
+    const choicesArray = scene.next || scene.choices || [];
+    if (choicesArray.length > 0) {
       const choicesElement = document.createElement('div');
       choicesElement.className = 'right-choices';
       
-      scene.next.forEach(choice => {
+      choicesArray.forEach(choice => {
         // Skip choices with unmet conditions
         if (choice.condition && !this.evaluateCondition(choice.condition)) {
           return;
@@ -419,8 +459,15 @@ class EpitomeSPA {
         const choiceElement = document.createElement('button');
         choiceElement.className = 'custom-choice';
         
-        // Use label if available, otherwise fallback to ID or a default label
-        choiceElement.textContent = choice.label || choice.id || 'Continue';
+        // Set the target scene ID - for backward compatibility
+        const targetId = choice.id || choice.target;
+        if (targetId) {
+          choiceElement.setAttribute('data-scene-id', targetId);
+        }
+        
+        // Use label if available, otherwise text, otherwise target/id, or default label
+        const choiceText = choice.label || choice.text || targetId || 'Continue';
+        choiceElement.textContent = choiceText;
         
         // Use DOM utils for event handling
         domUtils.on(choiceElement, 'click', () => {
@@ -428,7 +475,11 @@ class EpitomeSPA {
           if (typeof this.options.onChoiceSelect === 'function') {
             this.options.onChoiceSelect(choice);
           }
-          this.navigateTo(choice.id, choice);
+          
+          // Navigate to target scene - prioritize id for backward compatibility
+          if (targetId) {
+            this.navigateTo(targetId, choice);
+          }
         });
         
         choicesElement.appendChild(choiceElement);
@@ -447,11 +498,13 @@ class EpitomeSPA {
       
       setTimeout(() => {
         // Clear container and add new scene
+        if (!this.container) return;
         this.container.innerHTML = '';
         this.container.appendChild(sceneElement);
         
         // Remove transition class after a short delay
         setTimeout(() => {
+          if (!this.container) return;
           this.container.classList.remove('transitioning');
           
           // Activate elements after container transition completes
@@ -484,10 +537,10 @@ class EpitomeSPA {
   
   /**
    * Custom scene rendering method that uses existing HTML structure
-   * @param {Object} scene The scene object to render
-   * @param {NodeList} containers The custom containers with data-scene-container attribute
    */
-  renderCustomScene(scene, containers) {
+  private renderCustomScene(scene: Scene, containers: NodeListOf<Element>): void {
+    if (!this.container) return;
+
     // Add transitioning class to main container if animations are enabled
     if (this.options.animations) {
       this.container.classList.add('transitioning');
@@ -508,7 +561,8 @@ class EpitomeSPA {
           break;
           
         case 'content':
-          container.innerHTML = scene.html || '';
+          // Use html field if available (legacy), otherwise use content
+          container.innerHTML = scene.html || scene.content || '';
           container.className = 'scene-content';
           break;
           
@@ -523,8 +577,10 @@ class EpitomeSPA {
             container.classList.add('entering');
           }
           
-          if (scene.theme) {
-            container.classList.add(`theme-${scene.theme}`);
+          // Handle theme - both formats
+          const theme = scene.theme || (scene.meta ? scene.meta.theme : null);
+          if (theme) {
+            container.classList.add(`theme-${theme}`);
           }
           
           // Add title if present
@@ -538,7 +594,7 @@ class EpitomeSPA {
           // Add content
           const contentElement = document.createElement('div');
           contentElement.className = 'scene-content';
-          contentElement.innerHTML = scene.html || '';
+          contentElement.innerHTML = scene.html || scene.content || '';
           container.appendChild(contentElement);
           break;
           
@@ -547,8 +603,10 @@ class EpitomeSPA {
           container.innerHTML = '';
           container.className = 'right-choices';
           
-          if (scene.next && scene.next.length > 0) {
-            scene.next.forEach(choice => {
+          // Support both next and choices fields
+          const choicesArray = scene.next || scene.choices || [];
+          if (choicesArray.length > 0) {
+            choicesArray.forEach(choice => {
               // Skip choices with unmet conditions
               if (choice.condition && !this.evaluateCondition(choice.condition)) {
                 return;
@@ -556,10 +614,16 @@ class EpitomeSPA {
               
               const choiceElement = document.createElement('button');
               choiceElement.className = 'custom-choice';
-              choiceElement.setAttribute('data-scene-id', choice.id);
               
-              // Use label if available, otherwise fallback to ID or a default label
-              choiceElement.textContent = choice.label || choice.id || 'Continue';
+              // Set the target scene ID - for backward compatibility
+              const targetId = choice.id || choice.target;
+              if (targetId) {
+                choiceElement.setAttribute('data-scene-id', targetId);
+              }
+              
+              // Use label if available, otherwise text, otherwise target/id, or default label
+              const choiceText = choice.label || choice.text || targetId || 'Continue';
+              choiceElement.textContent = choiceText;
               
               // Use DOM utils for event handling
               domUtils.on(choiceElement, 'click', () => {
@@ -567,7 +631,11 @@ class EpitomeSPA {
                 if (typeof this.options.onChoiceSelect === 'function') {
                   this.options.onChoiceSelect(choice);
                 }
-                this.navigateTo(choice.id, choice);
+                
+                // Navigate to target scene - prioritize id for backward compatibility
+                if (targetId) {
+                  this.navigateTo(targetId, choice);
+                }
               });
               
               container.appendChild(choiceElement);
@@ -582,13 +650,16 @@ class EpitomeSPA {
       }
       
       // Add scene ID to container for reference
-      container.setAttribute('data-current-scene', scene.id);
+      const sceneId = scene.id || '';
+      container.setAttribute('data-current-scene', sceneId);
     });
     
     // After updating containers, handle animation completion
     if (this.options.animations) {
       setTimeout(() => {
-        this.container.classList.remove('transitioning');
+        if (this.container) {
+          this.container.classList.remove('transitioning');
+        }
         
         // Activate elements with a slight delay
         setTimeout(() => {
@@ -625,7 +696,7 @@ class EpitomeSPA {
   /**
    * Initialize all navigation elements in the page that have data-scene-id attributes
    */
-  initNavigationElements() {
+  private initNavigationElements(): void {
     // Find all elements with data-scene-id attribute
     const navigationElements = document.querySelectorAll('[data-scene-id]');
     
@@ -638,12 +709,13 @@ class EpitomeSPA {
       
       // Get the target scene ID
       const sceneId = element.getAttribute('data-scene-id');
+      if (!sceneId) return;
       
       // Get any condition attribute
       const condition = element.getAttribute('data-scene-condition');
       
       // Create a click handler
-      domUtils.on(element, 'click', (event) => {
+      domUtils.on(element, 'click', (event: Event) => {
         event.preventDefault();
         
         // Check if there's a condition and evaluate it
@@ -664,12 +736,14 @@ class EpitomeSPA {
   /**
    * Navigate to the previous scene
    */
-  goBack() {
+  public goBack(): void {
     if (this.state.history.length > 0) {
-      const previousScene = this.state.history.pop();
-      this.state.currentScene = previousScene;
-      this.saveState();
-      this.renderCurrentScene();
+      const previousSceneId = this.state.history.pop();
+      if (previousSceneId) {
+        this.state.currentScene = previousSceneId;
+        this.saveState();
+        this.renderCurrentScene();
+      }
     } else {
       console.log('No previous scenes in history');
     }
@@ -677,19 +751,17 @@ class EpitomeSPA {
 
   /**
    * Evaluate a condition expression
-   * @param {string} condition Condition to evaluate
-   * @returns {boolean} Whether the condition is met
    */
-  evaluateCondition(condition) {
+  private evaluateCondition(condition: string): boolean {
     if (!condition) return true;
     
     try {
       // Create a safe evaluation context with state data
       const context = {
         flags: this.state.flags,
-        hasFlag: (flag) => this.state.flags.has(flag),
+        hasFlag: (flag: string) => this.state.flags.has(flag),
         variables: this.state.variables,
-        choice: this.state.lastChoice || {},
+        choice: this.lastChoice || {},
         history: this.state.history
       };
       
@@ -709,62 +781,53 @@ class EpitomeSPA {
 
   /**
    * Set a variable in the state
-   * @param {string} name Variable name
-   * @param {any} value Variable value
    */
-  setVariable(name, value) {
+  public setVariable(name: string, value: any): void {
     this.state.variables[name] = value;
     this.saveState();
   }
 
   /**
    * Get a variable from the state
-   * @param {string} name Variable name
-   * @returns {any} Variable value
    */
-  getVariable(name) {
+  public getVariable(name: string): any {
     return this.state.variables[name];
   }
 
   /**
    * Check if a flag is set
-   * @param {string} flag Flag to check
-   * @returns {boolean} Whether the flag is set
    */
-  hasFlag(flag) {
+  public hasFlag(flag: string): boolean {
     return this.state.flags.has(flag);
   }
 
   /**
    * Set a flag
-   * @param {string} flag Flag to set
    */
-  setFlag(flag) {
+  public setFlag(flag: string): void {
     this.state.flags.add(flag);
     this.saveState();
   }
 
   /**
    * Clear a flag
-   * @param {string} flag Flag to clear
    */
-  clearFlag(flag) {
+  public clearFlag(flag: string): void {
     this.state.flags.delete(flag);
     this.saveState();
   }
 
   /**
    * Toggle animations on/off
-   * @param {boolean} enabled Whether animations should be enabled
    */
-  setAnimations(enabled) {
+  public setAnimations(enabled: boolean): boolean {
     this.options.animations = enabled === true;
     
     // Store the setting in localStorage if state persistence is enabled
     if (this.options.persistState) {
       try {
         // Update in structured settings
-        const settings = storage.get('epitome_settings') || {};
+        const settings = (storage.get('epitome_settings') || {}) as EpitomeSettings;
         settings.animations = this.options.animations;
         storage.set('epitome_settings', settings);
         
@@ -785,13 +848,11 @@ class EpitomeSPA {
   
   /**
    * Get current animation setting
-   * @returns {boolean} Whether animations are enabled
    */
-  getAnimations() {
+  public getAnimations(): boolean {
     return this.options.animations;
   }
 }
 
-// Export the engine
+// Export the engine as default
 export default EpitomeSPA;
-window.EpitomeSPA = EpitomeSPA; 

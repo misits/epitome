@@ -19,9 +19,6 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
 <link rel="manifest" href="favicon/site.webmanifest">
 
-<!-- CSS -->
-<link rel="stylesheet" href="assets/css/engine.css">
-
 
     <link rel="stylesheet" href="assets/css/global.css">
 
@@ -30,90 +27,21 @@
 </head>
 
 <body class="theme-global">
+    <header class="header" id="header">
     
+</header>
 
     <main class="main">
         <!-- Scene container -->
     <div id="app-container" class="scene-wrapper" data-debug-mode="true">
         <div data-scene-container="content" class="scene-content">
     </div>
-    
-    <!-- Settings panel -->
-    <!-- Settings panel (hidden by default) -->
-
-    <div class="settings-panel">
-        <button id="reset-button">Reset</button>
-        <button id="toggle-animations"><span class="toggle-animations-status"></span> Animations</button>
-    </div>
-
     </main>
 
         <!-- JavaScript - main engine script -->
     <script src="assets/js/main.js" type="module"></script>
+    <script src="assets/js/engine.js" type="module"></script>
     
-    <!-- Engine initialization scripts -->
-    <script type="module">
-    document.addEventListener('DOMContentLoaded', async function() {
-        try {
-            // Import the engine and utilities from the main module
-            const module = await import('./assets/js/main.js');
-            const { EpitomeSPA } = module;
-            
-            const container = document.getElementById('app-container');
-            const debug = container.getAttribute('data-debug-mode') === 'true';
-            
-            // Create engine instance
-            const engine = new EpitomeSPA({
-                containerId: 'app-container',
-                initialScene: 'index',
-                scenesPath: 'assets/data/scenes.json',
-                debugMode: debug
-            });
-            
-            // Reset button
-            var resetBtn = document.getElementById('reset-button');
-            if (resetBtn) {
-                resetBtn.addEventListener('click', function() {
-                    if (confirm('Reset your progress?')) {
-                        engine.resetState();
-                    }
-                });
-            }
-            
-            // Animation toggle
-            var animBtn = document.getElementById('toggle-animations');
-            if (animBtn) {
-                // Update button text based on current animation state
-                const updateAnimationToggleUI = () => {
-                    const isEnabled = engine.getAnimations();
-                    animBtn.innerHTML = `<span class="toggle-animations-status">${isEnabled ? '✓' : '✗'}</span> Animations`;
-                };
-                
-                // Set initial UI state
-                updateAnimationToggleUI();
-                
-                // Add click handler
-                animBtn.addEventListener('click', function() {
-                    // Use the proper engine method to toggle animations
-                    engine.setAnimations(!engine.getAnimations());
-                    // Update UI
-                    updateAnimationToggleUI();
-                });
-            }
-            
-            // Debug access
-            window.gameEngine = engine;
-        } catch (error) {
-            console.error('Failed to initialize SPA engine:', error);
-            document.getElementById('app-container').innerHTML = 
-                `<div class="scene-error" style="color:red;padding:20px;text-align:center">
-                    <h2>Error</h2>
-                    <p>Failed to initialize: ${error.message}</p>
-                </div>`;
-        }
-    });
-</script> 
-
     <!-- Custom footer scripts -->
 </body>
 </html> 

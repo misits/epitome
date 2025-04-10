@@ -34,7 +34,8 @@ export class Generator {
       extractCritical: options.extractCritical ?? false,
       moduleSplit: options.moduleSplit ?? false,
       purgeCss: options.purgeCss ?? false,
-      mediaQueryGrouping: options.mediaQueryGrouping ?? false
+      mediaQueryGrouping: options.mediaQueryGrouping ?? false,
+      spaMode: options.spaMode ?? false
     };
     
     // Initialize logger
@@ -58,8 +59,8 @@ export class Generator {
     this.assetProcessor = new AssetProcessor(this.logger);
     this.sceneCompiler = new SceneCompiler(this.logger);
     
-    // Check if SPA mode is active
-    this.isSpaMode = process.argv.includes('--spa');
+    // Check if SPA mode is active from options or command line
+    this.isSpaMode = this.options.spaMode || process.argv.includes('--spa');
     if (this.isSpaMode) {
       this.logger.info('SPA mode enabled - will generate a single page application');
       this.logger.info('In SPA mode, only index.html is generated and all markdown files are compiled into scenes.json');
@@ -584,5 +585,78 @@ export class Generator {
     }
     
     return isEmpty;
+  }
+
+  /**
+   * Compile SPA TypeScript files to JavaScript for browser usage
+   */
+  public compileSpa(): void {
+    try {
+      this.logger.info('Compiling SPA TypeScript files to JavaScript...');
+      
+      // 1. Check if esbuild is available (required for TypeScript compilation)
+      try {
+        const esbuild = require('esbuild');
+      } catch (error) {
+        this.logger.error('esbuild is required for SPA compilation. Please install it: npm install esbuild');
+        throw new Error('esbuild is required for SPA compilation');
+      }
+      
+      // 2. Ensure output directory exists
+      const outputJsDir = path.join(process.cwd(), this.options.outputDir, 'assets/js');
+      this.ensureDirectoryExists(outputJsDir);
+      
+      // 3. Compile main SPA entry point
+      const mainTsPath = path.join(process.cwd(), 'core/lib/spa/main.ts');
+      if (!fs.existsSync(mainTsPath)) {
+        this.logger.error(`SPA entry point not found: ${mainTsPath}`);
+        throw new Error('SPA entry point not found');
+      }
+      
+      // 4. Bundle the SPA with esbuild
+      this.logger.info(`Bundling SPA from: ${mainTsPath}`);
+      const outputPath = path.join(outputJsDir, 'engine.js');
+      
+      const esbuild = require('esbuild');
+      esbuild.buildSync({
+        entryPoints: [mainTsPath],
+        bundle: true,
+        minify: this.options.minifyJs,
+        outfile: outputPath,
+        format: 'esm', // Change from 'iife' to 'esm' for proper ES module exports
+        target: ['es2020'],
+        sourcemap: this.options.debug, // Generate sourcemaps in debug mode
+        define: {
+          'process.env.NODE_ENV': this.options.debug ? '"development"' : '"production"'
+        }
+      });
+      
+      this.logger.success(`SPA compiled to: ${outputPath}`);
+      
+      // 5. Create data directory for scenes if it doesn't exist
+      const dataDir = path.join(process.cwd(), this.options.outputDir, 'assets/data');
+      this.ensureDirectoryExists(dataDir);
+      
+      // 6. Check if scenes.json exists, create an empty one if it doesn't
+      const scenesPath = path.join(dataDir, 'scenes.json');
+      if (!fs.existsSync(scenesPath)) {
+        this.logger.info('Creating empty scenes.json file');
+        fs.writeFileSync(scenesPath, JSON.stringify({
+          version: "1.0",
+          scenes: {
+            "index": {
+              "id": "index",
+              "title": "Welcome to Epitome",
+              "content": "<p>This is a default scene. Edit <code>assets/data/scenes.json</code> to add your own scenes.</p>",
+              "choices": []
+            }
+          }
+        }, null, 2));
+        this.logger.info(`Created default scenes.json at: ${scenesPath}`);
+      }
+    } catch (error) {
+      this.logger.error('Failed to compile SPA:', error);
+      throw error;
+    }
   }
 } 

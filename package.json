@@ -11,19 +11,10 @@
         "dist/core/**/*"
     ],
     "scripts": {
-        "build": "ts-node -r tsconfig-paths/register core/bin/cli.ts",
-        "build:all": "ts-node -r tsconfig-paths/register core/build.ts",
-        "build:spa": "ts-node -r tsconfig-paths/register core/build.ts --spa && node copy-utils.js",
+        "build": "ts-node -r tsconfig-paths/register core/bin/build.ts",
+        "build:spa": "ts-node -r tsconfig-paths/register core/bin/build.ts --spa",
         "dev": "ts-node -r tsconfig-paths/register core/bin/dev.ts",
-        "dev:spa": "ts-node -r tsconfig-paths/register core/bin/dev.ts --spa && node copy-utils.js",
-        "watch": "ts-node -r tsconfig-paths/register core/build.ts --watch",
-        "watch:spa": "ts-node -r tsconfig-paths/register core/build.ts --spa --watch && node copy-utils.js",
-        "copy-utils": "node copy-utils.js",
-        "vite-dev": "VITE_RUNTIME=true ts-node -r tsconfig-paths/register core/bin/dev.ts",
-        "vite-build": "vite build",
-        "prepack": "npm run build",
-        "deploy:gh-pages": "git subtree push --prefix public origin gh-pages",
-        "deploy:spa": "npm run build:spa && npm run deploy:gh-pages"
+        "dev:spa": "ts-node -r tsconfig-paths/register core/bin/dev.ts --spa"
     },
     "keywords": [
         "cv",

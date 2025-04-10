@@ -7,7 +7,7 @@ export const validation = {
    * @param {string} email - Email to validate
    * @returns {boolean} True if valid email
    */
-  isEmail: (email) => {
+  isEmail: (email: string): boolean => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   },
   
@@ -16,7 +16,7 @@ export const validation = {
    * @param {string} url - URL to validate
    * @returns {boolean} True if valid URL
    */
-  isURL: (url) => {
+  isURL: (url: string): boolean => {
     try {
       new URL(url);
       return true;
@@ -30,7 +30,7 @@ export const validation = {
    * @param {string} phone - Phone number to validate
    * @returns {boolean} True if valid phone number
    */
-  isPhoneNumber: (phone) => {
+  isPhoneNumber: (phone: string): boolean => {
     return /^\+?[\d\s()-]{10,}$/.test(phone);
   },
   
@@ -39,7 +39,7 @@ export const validation = {
    * @param {string} password - Password to validate
    * @returns {boolean} True if strong password
    */
-  isStrongPassword: (password) => {
+  isStrongPassword: (password: string): boolean => {
     // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/.test(password);
   }

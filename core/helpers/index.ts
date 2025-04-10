@@ -3,19 +3,19 @@
  */
 
 // Import all utility modules
-import { dateUtils } from './date.js';
-import { debounce, throttle, wait } from './function.js';
-import { storage } from './storage.js';
-import { urlUtils } from './url.js';
-import { domUtils } from './dom.js';
-import { stringUtils } from './string.js';
-import { arrayUtils } from './array.js';
-import { cookieUtils } from './cookie.js';
-import { objectUtils } from './object.js';
-import { numberUtils } from './number.js';
-import { validation } from './validation.js';
-import { fetchWithTimeout } from './fetch.js';
-import { generateUUID, copyToClipboard } from './misc.js';
+import { dateUtils } from './date';
+import { debounce, throttle, wait } from './function';
+import { storage } from './storage';
+import { urlUtils } from './url';
+import { domUtils } from './dom';
+import { stringUtils } from './string';
+import { arrayUtils } from './array';
+import { cookieUtils } from './cookie';
+import { objectUtils } from './object';
+import { numberUtils } from './number';
+import { validation } from './validation';
+import { fetchWithTimeout } from './fetch';
+import { generateUUID, copyToClipboard } from './misc';
 import { 
   validateScene, 
   extractSummary, 
@@ -26,7 +26,7 @@ import {
   mergeSceneData,
   hasReachableChoices,
   findSceneReferences
-} from './scene.js';
+} from './scene';
 
 // Re-export everything
 export {

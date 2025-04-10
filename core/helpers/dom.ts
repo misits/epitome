@@ -8,9 +8,9 @@ export const domUtils = {
    * @param {Element} parent - Parent element (defaults to document)
    * @returns {Element|null} The first matching element or null
    */
-  qs: (selector, parent = document) => {
+  qs: <T extends Element = Element>(selector: string, parent: ParentNode = document): T | null => {
     try {
-      return parent.querySelector(selector);
+      return parent.querySelector<T>(selector);
     } catch (err) {
       console.error(`Invalid selector: ${selector}`, err);
       return null;
@@ -23,9 +23,9 @@ export const domUtils = {
    * @param {Element} parent - Parent element (defaults to document)
    * @returns {Element[]|[]} Array of matching elements or empty array
    */
-  qsa: (selector, parent = document) => {
+  qsa: <T extends Element = Element>(selector: string, parent: ParentNode = document): T[] => {
     try {
-      return [...parent.querySelectorAll(selector)];
+      return Array.from(parent.querySelectorAll<T>(selector));
     } catch (err) {
       console.error(`Invalid selector: ${selector}`, err);
       return [];
@@ -40,13 +40,18 @@ export const domUtils = {
    * @param {Object} options - Event listener options
    * @returns {Function} Function to remove the event listener
    */
-  on: (element, eventType, handler, options = {}) => {
+  on: <K extends keyof HTMLElementEventMap>(
+    element: Element | Window | Document | null, 
+    eventType: K, 
+    handler: (event: HTMLElementEventMap[K]) => void, 
+    options: AddEventListenerOptions = {}
+  ): () => void => {
     if (!element) return () => {};
     
-    element.addEventListener(eventType, handler, options);
+    element.addEventListener(eventType, handler as EventListener, options);
     
     return () => {
-      element.removeEventListener(eventType, handler, options);
+      element.removeEventListener(eventType, handler as EventListener, options);
     };
   }
 }; 

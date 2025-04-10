@@ -6,7 +6,7 @@
  * Generate a UUID
  * @returns {string} Generated UUID
  */
-export const generateUUID = () => {
+export const generateUUID = (): string => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -19,7 +19,7 @@ export const generateUUID = () => {
  * @param {string} text - Text to copy
  * @returns {Promise} Promise that resolves when text is copied
  */
-export const copyToClipboard = (text) => {
+export const copyToClipboard = (text: string): Promise<void> => {
   if (navigator.clipboard) {
     return navigator.clipboard.writeText(text);
   } else {

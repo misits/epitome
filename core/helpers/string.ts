@@ -9,7 +9,7 @@ export const stringUtils = {
    * @param {string} ending - String to append at the end
    * @returns {string} Truncated string
    */
-  truncate: (str, length = 100, ending = '...') => {
+  truncate: (str: string, length: number = 100, ending: string = '...'): string => {
     if (!str || str.length <= length) return str;
     return str.substring(0, length - ending.length) + ending;
   },
@@ -19,7 +19,7 @@ export const stringUtils = {
    * @param {string} str - String to capitalize
    * @returns {string} Capitalized string
    */
-  capitalize: (str) => {
+  capitalize: (str: string): string => {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   },
@@ -29,7 +29,7 @@ export const stringUtils = {
    * @param {string} str - String to convert
    * @returns {string} camelCase string
    */
-  toCamelCase: (str) => {
+  toCamelCase: (str: string): string => {
     return str
       .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => 
         index === 0 ? word.toLowerCase() : word.toUpperCase()
@@ -42,7 +42,7 @@ export const stringUtils = {
    * @param {string} str - String to convert
    * @returns {string} kebab-case string
    */
-  toKebabCase: (str) => {
+  toKebabCase: (str: string): string => {
     return str
       .match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g)
       ?.map(x => x.toLowerCase())

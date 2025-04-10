@@ -9,7 +9,7 @@ export const numberUtils = {
    * @param {string} locale - Locale code
    * @returns {string} Formatted currency string
    */
-  formatCurrency: (value, currency = 'USD', locale = 'en-US') => {
+  formatCurrency: (value: number, currency: string = 'USD', locale: string = 'en-US'): string => {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency
@@ -23,7 +23,7 @@ export const numberUtils = {
    * @param {number} max - Maximum value
    * @returns {number} Clamped number
    */
-  clamp: (num, min, max) => {
+  clamp: (num: number, min: number, max: number): number => {
     return Math.min(Math.max(num, min), max);
   },
   
@@ -34,7 +34,7 @@ export const numberUtils = {
    * @param {boolean} isInteger - Whether to return integer
    * @returns {number} Random number
    */
-  random: (min, max, isInteger = true) => {
+  random: (min: number, max: number, isInteger: boolean = true): number => {
     const value = Math.random() * (max - min) + min;
     return isInteger ? Math.floor(value) : value;
   },
@@ -45,7 +45,7 @@ export const numberUtils = {
    * @param {number} precision - Decimal precision
    * @returns {number} Rounded number
    */
-  round: (value, precision = 0) => {
+  round: (value: number, precision: number = 0): number => {
     const factor = Math.pow(10, precision);
     return Math.round(value * factor) / factor;
   }

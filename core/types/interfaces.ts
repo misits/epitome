@@ -25,6 +25,8 @@ export interface GeneratorOptions {
   moduleSplit?: boolean;
   purgeCss?: boolean;
   mediaQueryGrouping?: boolean;
+  // SPA mode
+  spaMode?: boolean;
 }
 
 // Ensure all options have defaults
@@ -43,6 +45,8 @@ export interface ResolvedGeneratorOptions {
   moduleSplit: boolean;
   purgeCss: boolean;
   mediaQueryGrouping: boolean;
+  // SPA mode
+  spaMode: boolean;
 }
 
 export interface TemplateEngine {

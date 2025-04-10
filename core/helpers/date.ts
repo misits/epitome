@@ -9,7 +9,7 @@ export const dateUtils = {
    * @param {string} locale - The locale to use
    * @returns {string} Formatted date string
    */
-  format: (date, options = {}, locale = 'en-US') => {
+  format: (date: Date | string | number, options: Intl.DateTimeFormatOptions = {}, locale: string = 'en-US'): string => {
     const dateObj = date instanceof Date ? date : new Date(date);
     return new Intl.DateTimeFormat(locale, options).format(dateObj);
   },
@@ -19,7 +19,7 @@ export const dateUtils = {
    * @param {Date|string|number} date - The date to format
    * @returns {string} Date in YYYY-MM-DD format
    */
-  toYMD: (date) => {
+  toYMD: (date: Date | string | number): string => {
     const d = date instanceof Date ? date : new Date(date);
     return d.toISOString().split('T')[0];
   },
@@ -30,12 +30,12 @@ export const dateUtils = {
    * @param {string} locale - The locale to use
    * @returns {string} Relative time string
    */
-  getRelativeTime: (date, locale = 'en-US') => {
+  getRelativeTime: (date: Date | string | number, locale: string = 'en-US'): string => {
     const dateObj = date instanceof Date ? date : new Date(date);
     const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
     
     const now = new Date();
-    const diffInSeconds = Math.floor((now - dateObj) / 1000);
+    const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
     
     if (diffInSeconds < 60) return rtf.format(-diffInSeconds, 'second');
     

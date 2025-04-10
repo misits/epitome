@@ -1,13 +1,27 @@
 /**
  * Scene utilities for the Epitome SPA engine
  */
+import { Scene } from '../lib/spa/types';
+
+interface SceneWithHTML extends Omit<Scene, 'content'> {
+  id: string;
+  html?: string;
+  next?: Choice[];
+}
+
+interface Choice {
+  id?: string;
+  text?: string;
+  condition?: string;
+  actions?: string[];
+}
 
 /**
  * Validates if a scene object has the expected properties
  * @param {Object} scene The scene object to validate
  * @returns {boolean} Whether the scene is valid
  */
-export const validateScene = (scene) => {
+export const validateScene = (scene: any): boolean => {
   if (!scene || typeof scene !== 'object') return false;
   
   // Must have an ID property (html can be empty)
@@ -25,7 +39,7 @@ export const validateScene = (scene) => {
  * @param {number} maxLength Maximum length of the summary
  * @returns {string} Plain text summary
  */
-export const extractSummary = (html, maxLength = 100) => {
+export const extractSummary = (html: string, maxLength: number = 100): string => {
   if (!html || html === '') return '';
   
   try {
@@ -56,7 +70,7 @@ export const extractSummary = (html, maxLength = 100) => {
  * @param {string} text Text to convert
  * @returns {string} Kebab-case ID
  */
-export const createSceneId = (text) => {
+export const createSceneId = (text: string): string => {
   if (!text) return '';
   
   return text
@@ -72,11 +86,11 @@ export const createSceneId = (text) => {
  * @param {Object} scenes The scenes collection
  * @returns {Array} Array of orphaned scene IDs
  */
-export const findOrphanedScenes = (scenes) => {
+export const findOrphanedScenes = (scenes: Record<string, SceneWithHTML>): string[] => {
   if (!scenes || typeof scenes !== 'object') return [];
   
   const allSceneIds = Object.keys(scenes);
-  const referencedIds = new Set();
+  const referencedIds = new Set<string>();
   
   // Collect all referenced scene IDs
   allSceneIds.forEach(sceneId => {
@@ -99,14 +113,13 @@ export const findOrphanedScenes = (scenes) => {
 /**
  * Check if a scene is conditional based on flags
  * @param {Object} scene The scene object
- * @param {Set} flags Set of active flags
  * @returns {boolean} Whether the scene has flag-based conditions
  */
-export const hasConditionalAccess = (scene) => {
+export const hasConditionalAccess = (scene: SceneWithHTML): boolean => {
   if (!scene) return false;
   
   // Scene itself has a condition
-  if (scene.condition) return true;
+  if ('condition' in scene) return true;
   
   // Check if any choices have conditions
   if (scene.next && Array.isArray(scene.next)) {
@@ -124,7 +137,12 @@ export const hasConditionalAccess = (scene) => {
  * @param {Array} choices Array of next choices
  * @returns {Object} A new scene object
  */
-export const createScene = (id, title = '', html = '', choices = []) => {
+export const createScene = (
+  id?: string, 
+  title: string = '', 
+  html: string = '', 
+  choices: Choice[] = []
+): SceneWithHTML => {
   return {
     id: id || createSceneId(title),
     title,
@@ -139,8 +157,11 @@ export const createScene = (id, title = '', html = '', choices = []) => {
  * @param {Object} updates The updates to apply
  * @returns {Object} The merged scene object
  */
-export const mergeSceneData = (original, updates) => {
-  if (!original) return updates;
+export const mergeSceneData = (
+  original: SceneWithHTML, 
+  updates: Partial<SceneWithHTML>
+): SceneWithHTML => {
+  if (!original) return updates as SceneWithHTML;
   if (!updates) return original;
   
   return {
@@ -157,7 +178,10 @@ export const mergeSceneData = (original, updates) => {
  * @param {Set} flags Set of active flags
  * @returns {boolean} Whether the scene has reachable choices
  */
-export const hasReachableChoices = (scene, flags) => {
+export const hasReachableChoices = (
+  scene: SceneWithHTML, 
+  flags: Set<string>
+): boolean => {
   if (!scene || !scene.next || !Array.isArray(scene.next)) return false;
   
   return scene.next.some(choice => {
@@ -167,7 +191,7 @@ export const hasReachableChoices = (scene, flags) => {
     // Evaluate condition
     try {
       // Create a safe evaluation context
-      const hasFlag = (flag) => flags.has(flag);
+      const hasFlag = (flag: string) => flags.has(flag);
       const context = { flags, hasFlag };
       
       // Create a function with the context variables in scope
@@ -191,7 +215,10 @@ export const hasReachableChoices = (scene, flags) => {
  * @param {string} targetId The scene ID to find references to
  * @returns {Array} Array of scene IDs that reference the target
  */
-export const findSceneReferences = (scenes, targetId) => {
+export const findSceneReferences = (
+  scenes: Record<string, SceneWithHTML>, 
+  targetId: string
+): string[] => {
   if (!scenes || !targetId) return [];
   
   return Object.keys(scenes).filter(sceneId => {

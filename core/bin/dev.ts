@@ -24,6 +24,9 @@ options.debug = true;
 // Check if build all mode is disabled (single file mode)
 const singleFileMode = process.argv.includes('--single-file') || process.argv.includes('-s');
 
+// Check if SPA mode is enabled
+const isSpaMode = process.argv.includes('--spa');
+
 // Paths (resolved)
 const cwd = process.cwd();
 const outputDir = path.resolve(cwd, options.outputDir || './public');
@@ -31,6 +34,7 @@ const mdDir = path.resolve(cwd, options.mdDir || './src/md');
 const templatesDir = path.resolve(cwd, options.templatesDir || './src/templates');
 const scssDir = path.resolve(cwd, options.scssDir || './src/scss');
 const jsDir = path.resolve(cwd, options.jsDir || './src/js');
+const spaDir = path.resolve(cwd, 'core/lib/spa');
 
 // Check for minification flags
 const minifyCss = !process.argv.includes('--no-minify');
@@ -45,7 +49,8 @@ const generator = new Generator({
   jsDir: options.jsDir,
   debug: true,
   minifyCss,
-  minifyJs
+  minifyJs,
+  spaMode: isSpaMode // Pass SPA mode to generator
 });
 
 // Function to ensure the output directory exists
@@ -89,8 +94,24 @@ function buildAllSites(): void {
     ensureDirectoryExists(outputDir);
     console.log('Building all markdown files...');
     generator.buildAll();
+    
+    // Compile SPA if enabled
+    if (isSpaMode) {
+      compileSpa();
+    }
   } catch (error) {
     console.error('❌ Build failed:', error);
+  }
+}
+
+// Function to compile the SPA
+function compileSpa(): void {
+  try {
+    console.log('Compiling SPA for browser usage...');
+    generator.compileSpa();
+    console.log('✅ SPA compilation completed');
+  } catch (error) {
+    console.error('❌ SPA compilation failed:', error);
   }
 }
 
@@ -99,6 +120,12 @@ function processJavaScript(): void {
   try {
     console.log('Processing JavaScript files...');
     generator['processJavaScript']();
+    
+    // Also compile SPA if enabled
+    if (isSpaMode) {
+      compileSpa();
+    }
+    
     console.log('✅ JavaScript processing completed');
   } catch (error) {
     console.error('❌ JavaScript processing failed:', error);
@@ -109,6 +136,11 @@ function processJavaScript(): void {
 if (singleFileMode) {
   console.log('🔍 Single file mode: building only the specified or default page');
   buildSite(options.page || 'index.md');
+  
+  // Compile SPA if in SPA mode
+  if (isSpaMode) {
+    compileSpa();
+  }
 } else {
   console.log('🏗️ Building all markdown files...');
   buildAllSites();
@@ -120,6 +152,9 @@ console.log(`  - Markdown: ${mdDir}`);
 console.log(`  - Templates: ${templatesDir}`);
 console.log(`  - SCSS: ${scssDir}`);
 console.log(`  - JavaScript: ${jsDir}`);
+if (isSpaMode) {
+  console.log(`  - SPA Sources: ${spaDir}`);
+}
 
 // Start Vite dev server
 async function startDevServer() {
@@ -137,7 +172,8 @@ async function startDevServer() {
           path.join(mdDir, '**/*.md'),
           path.join(templatesDir, '**/*.html'),
           path.join(scssDir, '**/*.scss'),
-          path.join(jsDir, '**/*.js')
+          path.join(jsDir, '**/*.js'),
+          path.join(spaDir, '**/*.ts')
         ],
       }
     }
@@ -147,12 +183,19 @@ async function startDevServer() {
   server.printUrls();
   
   // Set up file watchers
-  const watcher = chokidar.watch([
+  const watchPaths = [
     path.join(mdDir, '**/*.md'),
     path.join(templatesDir, '**/*.html'),
     path.join(scssDir, '**/*.scss'),
     path.join(jsDir, '**/*.js')
-  ], {
+  ];
+  
+  // Add SPA TypeScript files to watch if in SPA mode
+  if (isSpaMode) {
+    watchPaths.push(path.join(spaDir, '**/*.ts'));
+  }
+  
+  const watcher = chokidar.watch(watchPaths, {
     ignoreInitial: true,
     awaitWriteFinish: {
       stabilityThreshold: 300,
@@ -187,6 +230,9 @@ async function startDevServer() {
     } else if (filePath.endsWith('.js')) {
       // For JavaScript changes, only process the JavaScript files
       processJavaScript();
+    } else if (filePath.endsWith('.ts') && isSpaMode) {
+      // For TypeScript changes in SPA mode, compile the SPA
+      compileSpa();
     }
     
     // Reload browser using Vite's HMR API
@@ -257,6 +303,7 @@ async function startDevServer() {
 📁 Serving files from: ${outputDir}
 ⚡ HMR enabled
 ${singleFileMode ? '📄 Single file mode: Only building ' + (options.page || 'index.md') : '📚 Building all markdown files'}
+${isSpaMode ? '🖥️ SPA mode enabled: Compiling SPA TypeScript to JavaScript' : ''}
 Press Ctrl+C to stop
   `);
 }

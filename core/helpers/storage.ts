@@ -7,7 +7,7 @@ export const storage = {
    * @param {string} key - The key to store under
    * @param {*} value - The value to store
    */
-  set: (key, value) => {
+  set: <T>(key: string, value: T): void => {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
@@ -21,7 +21,7 @@ export const storage = {
    * @param {*} defaultValue - Default value if key doesn't exist
    * @returns {*} The stored value or defaultValue
    */
-  get: (key, defaultValue = null) => {
+  get: <T>(key: string, defaultValue: T | null = null): T | null => {
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : defaultValue;
@@ -35,7 +35,7 @@ export const storage = {
    * Remove an item from localStorage
    * @param {string} key - The key to remove
    */
-  remove: (key) => {
+  remove: (key: string): void => {
     try {
       localStorage.removeItem(key);
     } catch (err) {
@@ -46,7 +46,7 @@ export const storage = {
   /**
    * Clear all localStorage items
    */
-  clear: () => {
+  clear: (): void => {
     try {
       localStorage.clear();
     } catch (err) {

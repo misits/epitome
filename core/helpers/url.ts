@@ -7,8 +7,8 @@ export const urlUtils = {
    * @param {string} url - Optional URL string (defaults to window.location.href)
    * @returns {Object} URL parameters as key-value pairs
    */
-  getParams: (url = window.location.href) => {
-    const params = {};
+  getParams: (url: string = window.location.href): Record<string, string> => {
+    const params: Record<string, string> = {};
     const parser = document.createElement('a');
     parser.href = url;
     
@@ -30,7 +30,7 @@ export const urlUtils = {
    * @param {Object} params - Object with parameters as key-value pairs
    * @returns {string} URL with parameters
    */
-  buildUrl: (baseUrl, params = {}) => {
+  buildUrl: (baseUrl: string, params: Record<string, string> = {}): string => {
     const url = new URL(baseUrl);
     Object.keys(params).forEach(key => {
       url.searchParams.append(key, params[key]);

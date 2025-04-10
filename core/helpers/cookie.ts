@@ -1,13 +1,24 @@
 /**
  * Cookie utilities
  */
+
+interface CookieOptions {
+  path?: string;
+  domain?: string;
+  expires?: Date | string;
+  'max-age'?: number;
+  secure?: boolean;
+  samesite?: 'strict' | 'lax' | 'none';
+  [key: string]: any;
+}
+
 export const cookieUtils = {
   /**
    * Get cookie by name
    * @param {string} name - Cookie name
    * @returns {string|null} Cookie value or null
    */
-  get: (name) => {
+  get: (name: string): string | null => {
     const match = document.cookie.match(new RegExp(`(^|;\\s*)(${name})=([^;]*)`));
     return match ? decodeURIComponent(match[3]) : null;
   },
@@ -18,8 +29,8 @@ export const cookieUtils = {
    * @param {string} value - Cookie value
    * @param {Object} options - Cookie options
    */
-  set: (name, value, options = {}) => {
-    const opts = {
+  set: (name: string, value: string, options: CookieOptions = {}): void => {
+    const opts: CookieOptions = {
       path: '/',
       ...options
     };
@@ -46,7 +57,7 @@ export const cookieUtils = {
    * @param {string} name - Cookie name
    * @param {Object} options - Cookie options
    */
-  delete: (name, options = {}) => {
+  delete: (name: string, options: CookieOptions = {}): void => {
     cookieUtils.set(name, '', {
       ...options,
       'max-age': -1
