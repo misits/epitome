@@ -1,29 +1,24 @@
 ---
-# Theme
-
-# Head
-title: "The Journey Begins"
-name: "Epitome"
-summary: "You stand at a crossroads, with two paths stretching before you."
-
-# Navigation
-next: 
-  - id: "chapter-1a"
-    label: "Take the forest path"
-  - id: "chapter-1b"
-    label: "Take the mountain trail"
-
+id: index
+title: The Journey Begins
+name: Epitome
+summary: 'You stand at a crossroads, with two paths stretching before you.'
+next:
+  - id: chapter-1a
+    label: Take the forest path
+  - id: chapter-1b
+    label: Take the mountain trail
 previous: []
-
-# Variables
 variables: []
+introduction: >
+  Welcome to your adventure! You stand at a crossroads, with two paths
+  stretching before you.
 
-# HTML & Text
-introduction: |
-  Welcome to your adventure! You stand at a crossroads, with two paths stretching before you.
-  
-  To the left, a path winds its way into a dense, mysterious forest. To the right, a trail climbs up the side of a majestic mountain.
-  
+
+  To the left, a path winds its way into a dense, mysterious forest. To the
+  right, a trail climbs up the side of a majestic mountain.
+
+
   Which path will you choose?
 ---
 

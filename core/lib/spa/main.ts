@@ -32,6 +32,9 @@ import {
   findSceneReferences
 } from '@/helpers';
 
+// Import dev monitor for debug mode
+import { DevMonitor } from '@/lib/ui/monitors/DevMonitor';
+
 // Re-export all utilities
 export * from '@/helpers';
 
@@ -60,6 +63,7 @@ declare global {
   interface Window {
     EpitomeSPA: typeof EpitomeSPA;
     gameEngine: any;
+    devMonitor?: DevMonitor;
   }
 }
 
@@ -94,6 +98,39 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Expose engine instance globally for debugging
     window.gameEngine = engine;
+    
+    // Initialize dev monitor if in debug mode
+    if (debug) {
+      try {
+        console.log('Initializing dev monitor...');
+        
+        // Wait for the engine to fully initialize before creating the DevMonitor
+        setTimeout(() => {
+          const devMonitor = new DevMonitor({
+            title: 'Epitome Dev Tools',
+            apiEndpoint: '/api/scenes'
+          });
+          
+          // Verify engine has all required methods before initializing monitor
+          if (!engine) {
+            console.error('Cannot initialize DevMonitor: Engine is not defined');
+            return;
+          }
+          
+          // Initialize the DevMonitor with the engine instance
+          try {
+            devMonitor.initialize(engine);
+            // Expose dev monitor globally
+            window.devMonitor = devMonitor;
+          } catch (monitorError) {
+            console.error('Failed to initialize DevMonitor:', monitorError);
+          }
+        }, 500); // Add a small delay to ensure engine is fully initialized
+        
+      } catch (devMonitorError) {
+        console.error('Failed to create DevMonitor:', devMonitorError);
+      }
+    }
   } catch (error) {
     console.error('Failed to initialize Epitome SPA Engine:', error);
   }

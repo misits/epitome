@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { Generator } from '../lib';
+import { Generator } from '@/lib';
 
 /**
  * Main build script that generates a static CV site

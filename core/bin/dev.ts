@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /// <reference types="node" />
 
-import { Generator } from '../lib';
+import { Generator } from '@/lib';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as chokidar from 'chokidar';
-import { parseArgs } from '../utils/parseArgs';
+import { parseArgs } from '@/utils/parseArgs';
 import { createServer } from 'vite';
 
 /**

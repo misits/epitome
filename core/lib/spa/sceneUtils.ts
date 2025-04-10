@@ -13,7 +13,7 @@ import {
   mergeSceneData,
   hasReachableChoices,
   findSceneReferences
-} from '../../helpers';
+} from '@/helpers';
 
 export {
   validateScene,

@@ -40,7 +40,7 @@
   "index": {
     "id": "index",
     "title": "The Journey Begins",
-    "html": "<div class=\"container h-screen flex flex-col item-center justify-center\">\n  <h1>The Journey Begins</h1>\n\n<p>  Welcome to your adventure! You stand at a crossroads, with two paths stretching before you.\n\nTo the left, a path winds its way into a dense, mysterious forest. To the right, a trail climbs up the side of a majestic mountain.\n\nWhich path will you choose?\n</p>\n  <div class=\"right-choices\">\n    \n      <button data-scene-id=\"chapter-1a\">Take the forest path</button>\n    \n      <button data-scene-id=\"chapter-1b\">Take the mountain trail</button>\n    \n  </div>\n</div>",
+    "html": "<div class=\"container h-screen flex flex-col item-center justify-center\">\n  <h1>The Journey Begins</h1>\n\n<p>  Welcome to your adventure! You stand at a crossroads, with two paths stretching before you.\n\nTo the left, a path winds its way into a dense, mysterious forest. To the right, a trail climbs up the side of a majestic mountain.\n\nWhich path will you choose?\n</p>\n  <div class=\"right-choices\">\n    \n      <button data-scene-id=\"chapter-1a\">Take the forest path</button>\n    \n      <button data-scene-id=\"chapter-1b\">Take the mountain trail</button>\n    \n  </div>\n</div>\n",
     "next": [
       {
         "id": "chapter-1a",

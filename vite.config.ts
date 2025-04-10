@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { handleDirectoryUrls } from './core/plugins/handleDirectoryUrls';
+import { viteSceneManager } from './core/plugins';
 
 export default defineConfig({
   // Base public path - can be changed for deployment to subdirectories
@@ -51,6 +52,11 @@ export default defineConfig({
 
   // Use external plugins
   plugins: [
-    handleDirectoryUrls()
+    handleDirectoryUrls(),
+    viteSceneManager({
+      mdDir: 'src/md',
+      outputDir: 'public',
+      jsonOutputPath: 'public/assets/data/scenes.json'
+    })
   ]
 });

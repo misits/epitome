@@ -1,0 +1,33 @@
+/* Scene Transitions and Animations
+ * This file provides styles for scene transitions in the SPA engine
+ * The animation system uses classes:
+ * - .transitioning - Applied to container during transition
+ * - .active - Applied to container when active with animations
+ * - .no-animation - Applied to container when animations are disabled
+ */
+
+// Main app container - starts hidden and becomes visible
+#app-container {
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.active {
+    opacity: 1;
+  }
+  
+  &.no-animation {
+    opacity: 1;
+    transition: none;
+  }
+  
+  &.transitioning {
+    pointer-events: none; // Prevents clicks during transition
+  }
+}
+
+// Scene content - always visible
+.scene-content {
+  opacity: 1;
+  width: 100%;
+}
+

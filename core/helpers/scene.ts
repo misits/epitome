@@ -1,7 +1,7 @@
 /**
  * Scene utilities for the Epitome SPA engine
  */
-import { Scene } from '../lib/spa/types';
+import { Scene } from '@/types/spa';
 
 interface SceneWithHTML extends Omit<Scene, 'content'> {
   id: string;

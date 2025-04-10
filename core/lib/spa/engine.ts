@@ -10,7 +10,7 @@ import {
   SpaOptions, 
   EpitomeSettings, 
   UtilityDependencies 
-} from './types';
+} from '@/types/spa';
 
 // Utility variables - will be injected from main.ts
 let domUtils: any;
@@ -41,6 +41,10 @@ export class EpitomeSPA {
   private container: HTMLElement | null = null;
   private scenes: Record<string, Scene> | null = null;
   private lastChoice: Choice | null = null;
+  // Public property to access scenes from outside
+  public get scenesData(): Record<string, Scene> | null {
+    return this.scenes;
+  }
 
   constructor(options: SpaOptions = {}) {
     // Configuration with defaults
@@ -169,6 +173,11 @@ export class EpitomeSPA {
           invalidScenes.push(id);
           console.warn(`Invalid scene found: ${id}`);
         }
+        
+        // Make sure all scenes have an ID property that matches their key
+        if (this.scenes && !scene.id) {
+          this.scenes[id].id = id;
+        }
       });
       
       if (invalidScenes.length > 0) {
@@ -194,10 +203,34 @@ export class EpitomeSPA {
         console.log('Available scene IDs:', Object.keys(this.scenes || {}));
         console.log('Using initial scene:', this.options.initialScene);
       }
+      
+      // Dispatch a custom event when scenes are loaded
+      this.dispatchScenesLoadedEvent();
     } catch (error) {
       console.error('Error loading scenes:', error);
       this.showErrorMessage('Failed to load scenes. Please check the console for details.');
       throw error;
+    }
+  }
+
+  /**
+   * Dispatch a custom event when scenes are loaded for any external components
+   */
+  private dispatchScenesLoadedEvent(): void {
+    try {
+      const event = new CustomEvent('epitome-scenes-loaded', {
+        detail: {
+          scenes: this.scenes,
+          engine: this
+        }
+      });
+      document.dispatchEvent(event);
+      
+      if (this.options.debugMode) {
+        console.log('Dispatched scenes loaded event');
+      }
+    } catch (error) {
+      console.error('Failed to dispatch scenes loaded event:', error);
     }
   }
 
@@ -299,7 +332,7 @@ export class EpitomeSPA {
   /**
    * Navigate to a scene by ID
    */
-  public navigateTo(sceneId: string, choice: Choice | null = null): void {
+  public navigateTo(sceneId: string, choice: Choice | null = null, forceNavigation: boolean = false): void {
     // Find the scene by ID
     if (!this.scenes) {
       console.error('Scenes not loaded');
@@ -307,6 +340,7 @@ export class EpitomeSPA {
     }
 
     const scene = this.scenes[sceneId];
+  
     if (!scene) {
       const errorMsg = `Scene not found: ${sceneId}`;
       console.error(errorMsg);
@@ -323,8 +357,8 @@ export class EpitomeSPA {
       }
     }
 
-    // Check condition if present
-    if (scene.condition && !this.evaluateCondition(scene.condition)) {
+    // Check condition if present and not forcing navigation
+    if (!forceNavigation && scene.condition && !this.evaluateCondition(scene.condition)) {
       console.log(`Condition not met for scene: ${sceneId}`);
       return;
     }
@@ -418,8 +452,17 @@ export class EpitomeSPA {
     // Create scene container
     const sceneElement = document.createElement('div');
     sceneElement.className = 'scene';
+    
+    // Handle animation classes for container only
     if (this.options.animations) {
-      sceneElement.classList.add('entering');
+      if (this.container) {
+        this.container.classList.remove('no-animation');
+      }
+    } else {
+      if (this.container) {
+        this.container.classList.add('no-animation');
+        this.container.classList.remove('active');
+      }
     }
     
     // Handle theme - both formats
@@ -507,17 +550,11 @@ export class EpitomeSPA {
           if (!this.container) return;
           this.container.classList.remove('transitioning');
           
-          // Activate elements after container transition completes
+          // Set container as active to reveal content
           setTimeout(() => {
-            // Set scene as active
-            sceneElement.classList.remove('entering');
-            sceneElement.classList.add('active');
-            
-            // Activate child elements for staggered animation
-            const elements = sceneElement.querySelectorAll('.scene-title, .scene-content');
-            elements.forEach(el => {
-              el.classList.add('active');
-            });
+            if (this.container) {
+              this.container.classList.add('active');
+            }
           }, 50);
         }, 50);
       }, this.options.transitionDuration);
@@ -526,12 +563,9 @@ export class EpitomeSPA {
       this.container.innerHTML = '';
       this.container.appendChild(sceneElement);
       
-      // No animations, but still add active class for proper display
-      sceneElement.classList.add('active');
-      const elements = sceneElement.querySelectorAll('.scene-title, .scene-content');
-      elements.forEach(el => {
-        el.classList.add('active');
-      });
+      // No animations, set no-animation class
+      this.container.classList.add('no-animation');
+      this.container.classList.remove('active', 'transitioning');
     }
   }
   
@@ -544,6 +578,10 @@ export class EpitomeSPA {
     // Add transitioning class to main container if animations are enabled
     if (this.options.animations) {
       this.container.classList.add('transitioning');
+      this.container.classList.remove('no-animation');
+    } else {
+      this.container.classList.add('no-animation');
+      this.container.classList.remove('active', 'transitioning');
     }
     
     // Process each custom container
@@ -551,102 +589,14 @@ export class EpitomeSPA {
       // Check what part of the scene this container should display
       const part = container.getAttribute('data-scene-container');
       
-      // Handle different container types
-      switch (part) {
-        case 'title':
-          if (scene.title) {
-            container.textContent = scene.title;
-            container.className = 'scene-title';
-          }
-          break;
-          
-        case 'content':
-          // Use html field if available (legacy), otherwise use content
-          container.innerHTML = scene.html || scene.content || '';
-          container.className = 'scene-content';
-          break;
-          
-        case 'all':
-          // Container for the entire scene
-          // Clear container
-          container.innerHTML = '';
-          container.className = 'scene';
-          
-          // Add entering class if animations are enabled
-          if (this.options.animations) {
-            container.classList.add('entering');
-          }
-          
-          // Handle theme - both formats
-          const theme = scene.theme || (scene.meta ? scene.meta.theme : null);
-          if (theme) {
-            container.classList.add(`theme-${theme}`);
-          }
-          
-          // Add title if present
-          if (scene.title) {
-            const titleElement = document.createElement('h1');
-            titleElement.className = 'scene-title';
-            titleElement.textContent = scene.title;
-            container.appendChild(titleElement);
-          }
-          
-          // Add content
-          const contentElement = document.createElement('div');
-          contentElement.className = 'scene-content';
-          contentElement.innerHTML = scene.html || scene.content || '';
-          container.appendChild(contentElement);
-          break;
-          
-        case 'choices':
-          // Container for choices
-          container.innerHTML = '';
-          container.className = 'right-choices';
-          
-          // Support both next and choices fields
-          const choicesArray = scene.next || scene.choices || [];
-          if (choicesArray.length > 0) {
-            choicesArray.forEach(choice => {
-              // Skip choices with unmet conditions
-              if (choice.condition && !this.evaluateCondition(choice.condition)) {
-                return;
-              }
-              
-              const choiceElement = document.createElement('button');
-              choiceElement.className = 'custom-choice';
-              
-              // Set the target scene ID - for backward compatibility
-              const targetId = choice.id || choice.target;
-              if (targetId) {
-                choiceElement.setAttribute('data-scene-id', targetId);
-              }
-              
-              // Use label if available, otherwise text, otherwise target/id, or default label
-              const choiceText = choice.label || choice.text || targetId || 'Continue';
-              choiceElement.textContent = choiceText;
-              
-              // Use DOM utils for event handling
-              domUtils.on(choiceElement, 'click', () => {
-                // Handle choice selection
-                if (typeof this.options.onChoiceSelect === 'function') {
-                  this.options.onChoiceSelect(choice);
-                }
-                
-                // Navigate to target scene - prioritize id for backward compatibility
-                if (targetId) {
-                  this.navigateTo(targetId, choice);
-                }
-              });
-              
-              container.appendChild(choiceElement);
-            });
-          }
-          break;
-          
-        default:
-          // For containers with no specific type, show everything
-          this.renderDefaultScene(scene);
-          break;
+      // Handle only content container, use default rendering for others
+      if (part === 'content') {
+        // Use html field if available (legacy), otherwise use content
+        container.innerHTML = scene.html || scene.content || '';
+        container.className = 'scene-content';
+      } else {
+        // Use default rendering for all other container types
+        this.renderDefaultScene(scene);
       }
       
       // Add scene ID to container for reference
@@ -657,39 +607,21 @@ export class EpitomeSPA {
     // After updating containers, handle animation completion
     if (this.options.animations) {
       setTimeout(() => {
-        if (this.container) {
-          this.container.classList.remove('transitioning');
-        }
+        if (!this.container) return;
         
-        // Activate elements with a slight delay
+        this.container.classList.remove('transitioning');
+        
+        // Set container as active to reveal content with proper null check
         setTimeout(() => {
-          // Activate scene containers
-          const sceneContainers = document.querySelectorAll('.scene.entering');
-          sceneContainers.forEach(container => {
-            container.classList.remove('entering');
-            container.classList.add('active');
-          });
-          
-          // Activate titles and content
-          const elements = document.querySelectorAll('.scene-title, .scene-content');
-          elements.forEach(el => {
-            el.classList.add('active');
-          });
+          if (this.container) {
+            this.container.classList.add('active');
+          }
         }, 50);
       }, this.options.transitionDuration);
     } else {
-      // Without animations, just activate all elements immediately
-      const sceneContainers = document.querySelectorAll('.scene');
-      sceneContainers.forEach(container => {
-        container.classList.remove('entering');
-        container.classList.add('active');
-      });
-      
-      // Activate all elements
-      const elements = document.querySelectorAll('.scene-title, .scene-content');
-      elements.forEach(el => {
-        el.classList.add('active');
-      });
+      // Without animations, just make sure container is visible
+      this.container.classList.add('no-animation');
+      this.container.classList.remove('active', 'transitioning');
     }
   }
   
@@ -752,7 +684,7 @@ export class EpitomeSPA {
   /**
    * Evaluate a condition expression
    */
-  private evaluateCondition(condition: string): boolean {
+  public evaluateCondition(condition: string): boolean {
     if (!condition) return true;
     
     try {
