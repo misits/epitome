@@ -16,9 +16,11 @@ export class SettingsMonitor {
   private folder: any = null; // Tweakpane folder
   private engineInstance: any = null;
   private settings: Record<string, any> = {
-    animationMode: true
+    animationMode: true,
+    monitorDragEnabled: true
   };
   private animationBinding: any = null;
+  private monitorDragBinding: any = null;
 
   constructor(pane: Pane, options: SettingsMonitorOptions = {}) {
     this.pane = pane;
@@ -54,6 +56,22 @@ export class SettingsMonitor {
         
         // Verify the localStorage was updated correctly
         this.verifyLocalStorageSettings();
+      }
+    });
+    
+    // Add monitor drag setting
+    this.monitorDragBinding = this.folder.addBinding(this.settings, 'monitorDragEnabled', {
+      label: 'Monitor Dragging'
+    }).on('change', (ev: { value: boolean }) => {
+      // Update localStorage directly
+      this.setMonitorDragging(ev.value);
+      
+      // Show feedback
+      this.showNotification(`Monitor dragging ${ev.value ? 'enabled' : 'disabled'}`, 'info');
+      
+      // Force monitor to top right if disabled
+      if (!ev.value) {
+        this.resetMonitorPosition();
       }
     });
     
@@ -126,8 +144,11 @@ export class SettingsMonitor {
         const settings = JSON.parse(settingsJson) as EpitomeSettings;
         if (typeof settings.animations === 'boolean') {
           this.settings.animationMode = settings.animations;
-          this.refreshUi();
         }
+        if (typeof settings.monitorDragEnabled === 'boolean') {
+          this.settings.monitorDragEnabled = settings.monitorDragEnabled;
+        }
+        this.refreshUi();
       }
     } catch (error) {
       console.error('Failed to load settings from localStorage:', error);
@@ -145,10 +166,14 @@ export class SettingsMonitor {
         
         // Check if the localStorage settings match our current state
         const animMatch = settings.animations === this.settings.animationMode;
+        const dragMatch = settings.monitorDragEnabled === this.settings.monitorDragEnabled;
         
-        if (!animMatch) {
+        if (!animMatch || !dragMatch) {
           console.warn('Settings in localStorage do not match current state:', 
-            { localStorage: settings.animations, current: this.settings.animationMode });
+            { 
+              animations: { localStorage: settings.animations, current: this.settings.animationMode },
+              monitorDrag: { localStorage: settings.monitorDragEnabled, current: this.settings.monitorDragEnabled }
+            });
             
           // Force update localStorage to match our current state
           this.updateLocalStorage();
@@ -178,6 +203,7 @@ export class SettingsMonitor {
       
       // Update with current state
       settings.animations = this.settings.animationMode;
+      settings.monitorDragEnabled = this.settings.monitorDragEnabled;
       
       // Save back to localStorage
       localStorage.setItem('epitome_settings', JSON.stringify(settings));
@@ -238,8 +264,9 @@ export class SettingsMonitor {
         // Remove settings from localStorage
         localStorage.removeItem('epitome_settings');
         
-        // Set default animation state 
+        // Set default states
         this.settings.animationMode = true;
+        this.settings.monitorDragEnabled = true;
         
         // Apply to engine if available
         if (this.engineInstance) {
@@ -247,6 +274,9 @@ export class SettingsMonitor {
           
           // Update scene classes for default animation state
           this.updateSceneClasses(true);
+          
+          // Reset monitor position
+          this.resetMonitorPosition();
         }
         
         // Refresh UI
@@ -258,6 +288,79 @@ export class SettingsMonitor {
         this.showNotification('Failed to reset settings', 'error');
       }
     }
+  }
+  
+  /**
+   * Set monitor dragging setting
+   */
+  private setMonitorDragging(enabled: boolean): void {
+    this.settings.monitorDragEnabled = enabled;
+    
+    // Update localStorage
+    try {
+      // Get existing settings or create new object
+      let settings: EpitomeSettings;
+      try {
+        const settingsJson = localStorage.getItem('epitome_settings');
+        settings = settingsJson ? JSON.parse(settingsJson) : {};
+      } catch {
+        settings = {};
+      }
+      
+      // Update with current state
+      settings.monitorDragEnabled = enabled;
+      
+      // Save back to localStorage
+      localStorage.setItem('epitome_settings', JSON.stringify(settings));
+      
+      // When disabling dragging, remove the saved position so that when
+      // re-enabled, it will correctly calculate a new position
+      if (!enabled) {
+        localStorage.removeItem('epitome_dev_monitor_position');
+      }
+      
+      console.log('Updated monitor drag setting:', enabled);
+    } catch (error) {
+      console.error('Failed to update monitor drag setting:', error);
+    }
+  }
+  
+  /**
+   * Reset monitor position to top right
+   */
+  private resetMonitorPosition(): void {
+    try {
+      // Remove any saved position
+      localStorage.removeItem('epitome_dev_monitor_position');
+      
+      // Find the dev monitor element
+      const monitorEl = document.getElementById('epitome-dev-monitor');
+      if (monitorEl) {
+        // Get current width before making changes
+        const currentWidth = monitorEl.getBoundingClientRect().width;
+        
+        // Position in top right with 10px padding
+        monitorEl.style.right = '10px';
+        monitorEl.style.top = '10px';
+        monitorEl.style.left = 'auto';
+        
+        // Preserve width if it exists
+        if (currentWidth > 0) {
+          monitorEl.style.width = `${currentWidth}px`;
+        }
+        
+        console.log('Reset monitor position to top right');
+      }
+    } catch (error) {
+      console.error('Failed to reset monitor position:', error);
+    }
+  }
+  
+  /**
+   * Get monitor drag enabled setting
+   */
+  public isMonitorDragEnabled(): boolean {
+    return this.settings.monitorDragEnabled;
   }
   
   /**

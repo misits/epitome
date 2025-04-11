@@ -8,7 +8,9 @@ next:
     label: Take the forest path
   - id: chapter-1b
     label: Take the mountain trail
-previous: []
+previous:
+  - id: index
+    label: Start
 variables: []
 introduction: >
   Welcome to your adventure! You stand at a crossroads, with two paths

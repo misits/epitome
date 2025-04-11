@@ -66,6 +66,7 @@ export interface SpaOptions {
  */
 export interface EpitomeSettings {
   animations?: boolean;           // Animation setting
+  monitorDragEnabled?: boolean;   // DevMonitor dragging enabled
   [key: string]: any;             // Additional settings
 }
 

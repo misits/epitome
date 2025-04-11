@@ -1,6 +1,6 @@
 ---
 id: chapter-1b
-title: 'The Mountain Trail :)'
+title: The Mountain Trail
 name: Epitome
 summary: >-
   You :) climb the rocky mountain trail, enjoying breathtaking views of the
