@@ -5,6 +5,7 @@ import { EachProcessor } from '@lib/engine/processors/EachProcessor';
 import { VariableProcessor } from '@lib/engine/processors/VariableProcessor';
 import { YieldProcessor } from '@lib/engine/processors/YieldProcessor';
 import { PartialProcessor } from '@lib/engine/processors/PartialProcessor';
+import { CanvasProcessor } from '@lib/engine/processors/CanvasProcessor';
 import { ContextResolver } from '@lib/engine/context/ContextResolver';
 import { HtmlUtils } from '@lib/engine/utils/HtmlUtils';
 
@@ -23,6 +24,7 @@ export class EpitomeEngine implements TemplateEngine {
   private variableProcessor: VariableProcessor;
   private yieldProcessor: YieldProcessor;
   private partialProcessor: PartialProcessor;
+  private canvasProcessor: CanvasProcessor;
   private contextResolver: ContextResolver;
   private htmlUtils: HtmlUtils;
 
@@ -49,6 +51,7 @@ export class EpitomeEngine implements TemplateEngine {
       this.partialsDir,
       this.contextResolver
     );
+    this.canvasProcessor = new CanvasProcessor(this.logger, this.contextResolver, this.htmlUtils);
     
     // Connect processors that need references to each other
     this.eachProcessor.setPartialProcessor(this.partialProcessor);
@@ -137,10 +140,13 @@ export class EpitomeEngine implements TemplateEngine {
     processed = this.eachProcessor.processEachBlocks(processed, enhancedContext);
     processed = this.conditionalProcessor.processConditionals(processed, enhancedContext);
     
-    // 6. Process variables
+    // 6. Process canvas directives
+    processed = this.canvasProcessor.processCanvas(processed, enhancedContext);
+    
+    // 7. Process variables
     processed = this.variableProcessor.processVariables(processed, enhancedContext);
     
-    // 7. Clean up any remaining template tags
+    // 8. Clean up any remaining template tags
     processed = this.cleanupRemainingTags(processed);
     
     return processed;
@@ -165,6 +171,9 @@ export class EpitomeEngine implements TemplateEngine {
     
     // Remove any {{@sanitize ...}} tags
     result = result.replace(/{{@sanitize\s+[^}]+}}/g, '');
+    
+    // Remove any {{@canvas ...}} tags
+    result = result.replace(/{{@canvas\s+[^}]+}}/g, '');
     
     // Remove any {{@yield ...}} and {{/yield}} tags
     result = result.replace(/{{@yield\s+[^}]+}}/g, '');

@@ -57,6 +57,9 @@ export class FrontmatterMonitor {
     }
   };
 
+  // Registry of discovered scene types (populated dynamically)
+  private discoveredSceneTypes: Record<string, string> = {};
+
   constructor(pane: Pane, options: FrontmatterMonitorOptions = {}) {
     this.pane = pane;
     this.apiEndpoint = options.apiEndpoint || '/api/scenes';
@@ -100,10 +103,42 @@ export class FrontmatterMonitor {
   }
 
   /**
-   * Initialize with the engine instance
+   * Initialize with the engine instance and register scene types
    */
   public initialize(engineInstance: any): void {
     this.engineInstance = engineInstance;
+    
+    // If engine instance has sceneTypes, register them
+    if (engineInstance && engineInstance.sceneTypes) {
+      this.registerSceneTypes(engineInstance.sceneTypes);
+    }
+  }
+
+  /**
+   * Register available scene types
+   */
+  public registerSceneTypes(sceneTypes: Record<string, string> | string[]): void {
+    // Clear existing scene types
+    this.discoveredSceneTypes = {};
+    
+    if (Array.isArray(sceneTypes)) {
+      // If it's an array of strings, use the values as both keys and values
+      sceneTypes.forEach(type => {
+        // Capitalize first letter for display
+        const displayName = type.charAt(0).toUpperCase() + type.slice(1);
+        this.discoveredSceneTypes[displayName] = type;
+      });
+    } else {
+      // If it's an object, use it directly
+      this.discoveredSceneTypes = { ...sceneTypes };
+    }
+    
+    // Always ensure 'custom' is available
+    if (!Object.values(this.discoveredSceneTypes).includes('custom')) {
+      this.discoveredSceneTypes['Custom'] = 'custom';
+    }
+    
+    console.log('FrontmatterMonitor: Registered scene types:', this.discoveredSceneTypes);
   }
 
   /**
@@ -334,6 +369,25 @@ export class FrontmatterMonitor {
     if (value === null || value === undefined) return;
     
     const valueType = typeof value;
+    
+    // Special handling for known 3D/graphics fields
+    if (key === 'cameraConfig' || key === 'lightConfig' || key === 'sceneConfig') {
+      this.createSpecializedConfigFolder(key, value);
+      return;
+    }
+    
+    // Handle color fields
+    if ((valueType === 'string' && /^#[0-9A-F]{6}$/i.test(value)) || 
+        (key.toLowerCase().includes('color') && valueType === 'string')) {
+      // Create a color picker for hex color values
+      this.frontmatterBindings[key] = this.folder.addBinding(this.frontmatterData, key, {
+        label: key,
+        view: 'color'
+      }).on('change', () => {
+        this.triggerAutoSave();
+      });
+      return;
+    }
     
     // Special handling for known fields
     if (key === 'theme') {
@@ -897,6 +951,420 @@ export class FrontmatterMonitor {
       // Store reference to the folder
       this.frontmatterBindings[key] = objectFolder;
     }
+  }
+  
+  /**
+   * Create a specialized folder for 3D configuration objects
+   */
+  private createSpecializedConfigFolder(key: string, value: any): void {
+    // Create a folder for the configuration
+    const configFolder = this.folder.addFolder({
+      title: key,
+      expanded: false
+    });
+    
+    // Add a text field for JSON editing
+    const jsonValue = JSON.stringify(value, null, 2);
+    const tempObj = { jsonValue };
+    
+    configFolder.addBinding(tempObj, 'jsonValue', {
+      label: 'Edit as JSON',
+      multiline: true,
+      rows: Math.min(Object.keys(value).length + 2, 10)
+    }).on('change', (ev: { value: string }) => {
+      try {
+        // Parse the JSON string back to an object
+        this.frontmatterData[key] = JSON.parse(ev.value);
+        if (this.pane) {
+          this.pane.refresh();
+        }
+        this.triggerAutoSave();
+      } catch (e) {
+        console.error(`Invalid JSON for ${key}:`, e);
+      }
+    });
+    
+    // Create property fields for direct editing with specialized controls
+    const propsFolder = configFolder.addFolder({
+      title: 'Properties',
+      expanded: true
+    });
+    
+    // Create appropriate fields for each property based on type and name
+    Object.keys(value).forEach(propKey => {
+      const propValue = value[propKey];
+      const propType = typeof propValue;
+      
+      // Handle nested position objects (common in 3D configs)
+      if (propKey === 'position' && propType === 'object' && !Array.isArray(propValue)) {
+        const posFolder = propsFolder.addFolder({
+          title: 'position',
+          expanded: true
+        });
+        
+        // Create a slider for each coordinate
+        ['x', 'y', 'z'].forEach(coord => {
+          if (coord in propValue) {
+            const coordValue = propValue[coord];
+            const tempCoordObj = { value: coordValue };
+            
+            posFolder.addBinding(tempCoordObj, 'value', {
+              label: coord,
+              min: -20,
+              max: 20,
+              step: 0.1
+            }).on('change', (ev: { value: number }) => {
+              this.frontmatterData[key][propKey][coord] = ev.value;
+              // Update the JSON field
+              tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+              this.triggerAutoSave();
+            });
+          }
+        });
+      }
+      // Handle lookAt objects (for camera)
+      else if (propKey === 'lookAt' && propType === 'object' && !Array.isArray(propValue)) {
+        const lookAtFolder = propsFolder.addFolder({
+          title: 'lookAt',
+          expanded: true
+        });
+        
+        // Create a slider for each coordinate
+        ['x', 'y', 'z'].forEach(coord => {
+          if (coord in propValue) {
+            const coordValue = propValue[coord];
+            const tempCoordObj = { value: coordValue };
+            
+            lookAtFolder.addBinding(tempCoordObj, 'value', {
+              label: coord,
+              min: -20,
+              max: 20,
+              step: 0.1
+            }).on('change', (ev: { value: number }) => {
+              this.frontmatterData[key][propKey][coord] = ev.value;
+              // Update the JSON field
+              tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+              this.triggerAutoSave();
+            });
+          }
+        });
+      }
+      // Handle color properties
+      else if (propKey === 'color' || propKey.toLowerCase().includes('color')) {
+        if (propType === 'string' && propValue.startsWith('#')) {
+          const tempColorObj = { value: propValue };
+          
+          propsFolder.addBinding(tempColorObj, 'value', {
+            label: propKey,
+            view: 'color'
+          }).on('change', (ev: { value: string }) => {
+            this.frontmatterData[key][propKey] = ev.value;
+            // Update the JSON field
+            tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+            this.triggerAutoSave();
+          });
+        }
+      }
+      // Handle intensity properties (common in lights)
+      else if (propKey === 'intensity' && propType === 'number') {
+        const tempIntensityObj = { value: propValue };
+        
+        propsFolder.addBinding(tempIntensityObj, 'value', {
+          label: propKey,
+          min: 0,
+          max: 5,
+          step: 0.1
+        }).on('change', (ev: { value: number }) => {
+          this.frontmatterData[key][propKey] = ev.value;
+          // Update the JSON field
+          tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+          this.triggerAutoSave();
+        });
+      }
+      // Handle ambient/directional objects (for lights)
+      else if ((propKey === 'ambient' || propKey === 'directional') && propType === 'object') {
+        const lightFolder = propsFolder.addFolder({
+          title: propKey,
+          expanded: true
+        });
+        
+        Object.keys(propValue).forEach(lightProp => {
+          const lightPropValue = propValue[lightProp];
+          const lightPropType = typeof lightPropValue;
+          
+          if (lightProp === 'color' && lightPropType === 'string') {
+            const tempLightColorObj = { value: lightPropValue };
+            
+            lightFolder.addBinding(tempLightColorObj, 'value', {
+              label: lightProp,
+              view: 'color'
+            }).on('change', (ev: { value: string }) => {
+              this.frontmatterData[key][propKey][lightProp] = ev.value;
+              // Update the JSON field
+              tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+              this.triggerAutoSave();
+            });
+          }
+          else if (lightProp === 'intensity' && lightPropType === 'number') {
+            const tempLightIntensityObj = { value: lightPropValue };
+            
+            lightFolder.addBinding(tempLightIntensityObj, 'value', {
+              label: lightProp,
+              min: 0,
+              max: 5,
+              step: 0.1
+            }).on('change', (ev: { value: number }) => {
+              this.frontmatterData[key][propKey][lightProp] = ev.value;
+              // Update the JSON field
+              tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+              this.triggerAutoSave();
+            });
+          }
+          else if (lightProp === 'position' && lightPropType === 'object') {
+            const lightPosFolder = lightFolder.addFolder({
+              title: 'position',
+              expanded: true
+            });
+            
+            // Create a slider for each coordinate
+            ['x', 'y', 'z'].forEach(coord => {
+              if (coord in lightPropValue) {
+                const coordValue = lightPropValue[coord];
+                const tempCoordObj = { value: coordValue };
+                
+                lightPosFolder.addBinding(tempCoordObj, 'value', {
+                  label: coord,
+                  min: -20,
+                  max: 20,
+                  step: 0.1
+                }).on('change', (ev: { value: number }) => {
+                  this.frontmatterData[key][propKey][lightProp][coord] = ev.value;
+                  // Update the JSON field
+                  tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+                  this.triggerAutoSave();
+                });
+              }
+            });
+          }
+        });
+      }
+      // Handle type/preset selection for scene configuration
+      else if (propKey === 'type' && propType === 'string' && key === 'sceneConfig') {
+        this.createSceneTypeControl(propsFolder, key, propKey, propValue, tempObj);
+      }
+      // Handle standard string properties
+      else if (propType === 'string') {
+        const tempStrObj = { value: propValue };
+        
+        propsFolder.addBinding(tempStrObj, 'value', {
+          label: propKey
+        }).on('change', (ev: { value: string }) => {
+          this.frontmatterData[key][propKey] = ev.value;
+          // Update the JSON field
+          tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+          this.triggerAutoSave();
+        });
+      }
+      // Handle standard number properties
+      else if (propType === 'number') {
+        const tempNumObj = { value: propValue };
+        
+        propsFolder.addBinding(tempNumObj, 'value', {
+          label: propKey,
+          step: 0.1
+        }).on('change', (ev: { value: number }) => {
+          this.frontmatterData[key][propKey] = ev.value;
+          // Update the JSON field
+          tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+          this.triggerAutoSave();
+        });
+      }
+      // Handle standard boolean properties
+      else if (propType === 'boolean') {
+        const tempBoolObj = { value: propValue };
+        
+        propsFolder.addBinding(tempBoolObj, 'value', {
+          label: propKey
+        }).on('change', (ev: { value: boolean }) => {
+          this.frontmatterData[key][propKey] = ev.value;
+          // Update the JSON field
+          tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+          this.triggerAutoSave();
+        });
+      }
+      // For other complex nested objects, just show as JSON
+      else if (propType === 'object') {
+        propsFolder.addBinding({
+          info: Array.isArray(propValue) 
+            ? `Array with ${propValue.length} items` 
+            : `Object with ${Object.keys(propValue).length} properties`
+        }, 'info', {
+          readonly: true,
+          label: propKey
+        });
+      }
+    });
+    
+    // Add and remove property buttons
+    const addPropFolder = configFolder.addFolder({
+      title: 'Add/Remove Properties',
+      expanded: false
+    });
+    
+    // Add property form
+    interface PropData {
+      key: string;
+      type: string;
+      value: string;
+    }
+
+    const newPropData: PropData = { key: '', type: 'string', value: '' };
+    
+    addPropFolder.addBinding(newPropData, 'key', {
+      label: 'Property Name'
+    });
+    
+    addPropFolder.addBinding(newPropData, 'type', {
+      label: 'Type',
+      options: {
+        'String': 'string',
+        'Number': 'number',
+        'Boolean': 'boolean',
+        'Color': 'color',
+        'Object': 'object',
+        'Array': 'array'
+      }
+    });
+    
+    addPropFolder.addBinding(newPropData, 'value', {
+      label: 'Value',
+      multiline: true
+    });
+    
+    // Add property button
+    addPropFolder.addButton({
+      title: 'Add Property'
+    }).on('click', () => {
+      if (!newPropData.key) {
+        this.showNotification('Property name is required', 'error');
+        return;
+      }
+      
+      try {
+        let parsedValue: any = newPropData.value;
+        
+        // Parse the value based on the selected type
+        if (newPropData.type === 'string') {
+          parsedValue = String(newPropData.value);
+        } else if (newPropData.type === 'number') {
+          parsedValue = Number(newPropData.value);
+          if (isNaN(parsedValue)) {
+            throw new Error('Invalid number');
+          }
+        } else if (newPropData.type === 'boolean') {
+          const lowerValue = String(newPropData.value).toLowerCase();
+          if (['true', 'yes', '1'].includes(lowerValue)) {
+            parsedValue = true;
+          } else if (['false', 'no', '0'].includes(lowerValue)) {
+            parsedValue = false;
+          } else {
+            throw new Error('Invalid boolean value');
+          }
+        } else if (newPropData.type === 'color') {
+          // Ensure it's a valid color format
+          if (!newPropData.value.startsWith('#')) {
+            parsedValue = '#' + newPropData.value;
+          } else {
+            parsedValue = newPropData.value;
+          }
+          // Validate hex color
+          if (!/^#[0-9A-F]{6}$/i.test(parsedValue)) {
+            throw new Error('Invalid color format. Use #RRGGBB');
+          }
+        } else if (newPropData.type === 'object' || newPropData.type === 'array') {
+          parsedValue = JSON.parse(newPropData.value);
+        }
+        
+        // Add the property
+        this.frontmatterData[key][newPropData.key] = parsedValue;
+        
+        // Reset form
+        newPropData.key = '';
+        newPropData.value = '';
+        
+        // Refresh
+        this.clearBindings();
+        this.createBindingsFromFrontmatter();
+        this.triggerAutoSave();
+      } catch (e: any) {
+        this.showNotification(`Invalid value: ${e.message || 'Unknown error'}`, 'error');
+      }
+    });
+    
+    // Remove property form
+    const removePropData = { key: '' };
+    
+    // Create a dropdown with all property keys
+    const propertyOptions: Record<string, string> = {};
+    Object.keys(value).forEach(k => {
+      propertyOptions[k] = k;
+    });
+    
+    addPropFolder.addBinding(removePropData, 'key', {
+      label: 'Property to Remove',
+      options: propertyOptions
+    });
+    
+    // Remove property button
+    addPropFolder.addButton({
+      title: 'Remove Property'
+    }).on('click', () => {
+      if (!removePropData.key) {
+        this.showNotification('Please select a property to remove', 'error');
+        return;
+      }
+      
+      // Delete the property
+      delete this.frontmatterData[key][removePropData.key];
+      
+      // Refresh
+      this.clearBindings();
+      this.createBindingsFromFrontmatter();
+      this.triggerAutoSave();
+    });
+    
+    // Store reference to the folder
+    this.frontmatterBindings[key] = configFolder;
+  }
+  
+  /**
+   * Handle type/preset selection for scene configuration
+   */
+  private createSceneTypeControl(propsFolder: any, key: string, propKey: string, propValue: string, tempObj: any): void {
+    const tempTypeObj = { value: propValue };
+    
+    // Create options object from registered scene types
+    const sceneTypeOptions: Record<string, string> = {};
+    
+    // If we have discovered scene types, use them
+    if (Object.keys(this.discoveredSceneTypes).length > 0) {
+      Object.assign(sceneTypeOptions, this.discoveredSceneTypes);
+    } else {
+      // Otherwise, include the current value and a custom option
+      const displayName = propValue.charAt(0).toUpperCase() + propValue.slice(1);
+      sceneTypeOptions[displayName] = propValue;
+      sceneTypeOptions['Custom'] = 'custom';
+    }
+    
+    propsFolder.addBinding(tempTypeObj, 'value', {
+      label: propKey,
+      options: sceneTypeOptions
+    }).on('change', (ev: { value: string }) => {
+      this.frontmatterData[key][propKey] = ev.value;
+      // Update the JSON field
+      tempObj.jsonValue = JSON.stringify(this.frontmatterData[key], null, 2);
+      this.triggerAutoSave();
+    });
   }
   
   /**

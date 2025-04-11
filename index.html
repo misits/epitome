@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Epitome Canvas Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+    }
+    .scene-container {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 400px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+    p {
+      line-height: 1.5;
+      margin-bottom: 0;
+    }
+    .scene-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 5px;
+    }
+    select {
+      background-color: #333;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      border: none;
+      margin-top: 5px;
+    }
+    button {
+      background-color: #2a7de1;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #1c64c2;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene-container">
+    <canvas id="mountain-scene"></canvas>
+    <div class="overlay">
+      <h1>The Mountain Trail</h1>
+      <p>You climb the rocky mountain trail, enjoying breathtaking views of the valley below.</p>
+    </div>
+    
+    <div class="scene-selector">
+      <div>
+        <label for="scene-type">Scene Type:</label>
+        <select id="scene-type">
+          <!-- Will be filled dynamically -->
+        </select>
+      </div>
+      <button id="apply-scene-type">Apply Scene Type</button>
+    </div>
+  </div>
+
+  <!-- Load Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
+  
+  <!-- Load our Three.js implementation first to get scene types -->
+  <script src="js/three-scene.js"></script>
+
+  <!-- Custom Canvas Processor Demo Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Configure the canvas with the same configuration from chapter-1b.md
+      const canvas = document.getElementById('mountain-scene');
+      if (!canvas) return;
+
+      // Default scene configuration
+      const sceneConfig = {
+        type: "mountain",
+        skyColor: "#87CEEB",
+        fogColor: "#E6E6FA",
+        groundColor: "#8B4513"
+      };
+      
+      const cameraConfig = {
+        position: {
+          x: 0,
+          y: 1.6,
+          z: 5
+        },
+        lookAt: {
+          x: 0,
+          y: 0,
+          z: -10
+        }
+      };
+      
+      const lightConfig = {
+        ambient: {
+          color: "#FFFFFF",
+          intensity: 0.4
+        },
+        directional: {
+          color: "#FFFFEB",
+          intensity: 0.8,
+          position: {
+            x: 1,
+            y: 1,
+            z: 0.5
+          }
+        }
+      };
+      
+      // Set the data attributes programmatically
+      // These would normally be set by the CanvasProcessor
+      updateCanvasConfig();
+      
+      // Populate the scene type dropdown
+      const sceneTypeSelect = document.getElementById('scene-type');
+      if (sceneTypeSelect && window.EpitomeSceneTypes) {
+        // Create option for each scene type
+        window.EpitomeSceneTypes.forEach(type => {
+          const option = document.createElement('option');
+          option.value = type;
+          option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+          if (type === sceneConfig.type) {
+            option.selected = true;
+          }
+          sceneTypeSelect.appendChild(option);
+        });
+      }
+      
+      // Add event listener for the Apply button
+      const applyButton = document.getElementById('apply-scene-type');
+      if (applyButton) {
+        applyButton.addEventListener('click', () => {
+          if (sceneTypeSelect) {
+            // Update the scene type
+            sceneConfig.type = sceneTypeSelect.value;
+            // Apply changes
+            updateCanvasConfig();
+            // This would normally reload the scene, but we'll reload the page for simplicity
+            location.reload();
+          }
+        });
+      }
+      
+      // Function to update canvas data attributes
+      function updateCanvasConfig() {
+        canvas.dataset.sceneConfig = JSON.stringify(sceneConfig);
+        canvas.dataset.cameraConfig = JSON.stringify(cameraConfig);
+        canvas.dataset.lightConfig = JSON.stringify(lightConfig);
+      }
+
+      // Resize canvas to match container size
+      function resizeCanvas() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+      }
+
+      // Call resize initially and on window resize
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    });
+  </script>
+  
+  <!-- Example of how to integrate with FrontmatterMonitor -->
+  <script>
+    // This would normally be in your app initialization code
+    function integrateWithFrontmatterMonitor() {
+      // Example: If you have a FrontmatterMonitor instance
+      if (window.frontmatterMonitor && window.EpitomeSceneTypes) {
+        // Register the scene types with the monitor
+        window.frontmatterMonitor.registerSceneTypes(window.EpitomeSceneTypes);
+      }
+    }
+    
+    // Demonstration of registering a custom scene type
+    function registerCustomSceneType() {
+      if (window.registerSceneType) {
+        // Register a custom scene type with a renderer function
+        window.registerSceneType('myCustomScene', (scene, config) => {
+          // Create a custom Three.js scene
+          const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+          const material = new THREE.MeshStandardMaterial({
+            color: config.primaryColor || 0xff00ff,
+            metalness: 0.7,
+            roughness: 0.2
+          });
+          const torusKnot = new THREE.Mesh(geometry, material);
+          torusKnot.userData.rotate = true;
+          scene.add(torusKnot);
+          
+          // Add a ground plane
+          const groundGeometry = new THREE.PlaneGeometry(20, 20);
+          const groundMaterial = new THREE.MeshStandardMaterial({
+            color: config.groundColor || 0x333333,
+            metalness: 0.1,
+            roughness: 0.9
+          });
+          const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+          ground.rotation.x = -Math.PI / 2;
+          ground.position.y = -2;
+          scene.add(ground);
+        });
+        
+        console.log("Custom scene type registered. Available types:", window.EpitomeSceneTypes);
+      }
+    }
+    
+    // Call after a short delay to ensure Three.js script is loaded
+    setTimeout(() => {
+      integrateWithFrontmatterMonitor();
+      registerCustomSceneType();
+    }, 500);
+  </script>
+</body>
+</html> 

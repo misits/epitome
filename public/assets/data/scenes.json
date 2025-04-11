@@ -26,7 +26,7 @@
   "chapter-1b": {
     "id": "chapter-1b",
     "title": "The Mountain Trail",
-    "html": "<p>You choose the mountain trail. The steep path winds its way up the rocky slopes. From here, you can see the valley spreading out below you, a breathtaking vista of forests and fields.</p>\n<p>After climbing for a while, you stop to catch your breath and consider your next move. The air is thinner here, but crisp and clear. You can see for miles in every direction.</p>\n<p>The trail continues upward, disappearing around a bend. It looks challenging but potentially rewarding. However, you&#39;re also feeling a bit tired from the climb so far.</p>\n<p>Perhaps returning to the crossroads might be the wiser choice for now.</p>\n",
+    "html": "<p><canvas width=\"100%\" height=\"100vh\" style=\"width:100%;height:100vh;\" id=\"chapter-1b\" data-scene-config={&quot;skyColor&quot;:&quot;#87CEEB&quot;,&quot;fogColor&quot;:&quot;#E6E6FA&quot;,&quot;groundColor&quot;:&quot;#8B4513&quot;} data-camera-config={&quot;position&quot;:{&quot;x&quot;:0,&quot;y&quot;:1.6,&quot;z&quot;:5},&quot;lookAt&quot;:{&quot;x&quot;:0,&quot;y&quot;:0,&quot;z&quot;:-10}} data-light-config={&quot;ambient&quot;:{&quot;color&quot;:&quot;#FFFFFF&quot;,&quot;intensity&quot;:0.4},&quot;directional&quot;:{&quot;color&quot;:&quot;#FFFFEB&quot;,&quot;intensity&quot;:0.8,&quot;position&quot;:{&quot;x&quot;:1,&quot;y&quot;:1,&quot;z&quot;:0.5}}}></canvas></p>\n",
     "next": [
       {
         "id": "index",
